@@ -319,6 +319,10 @@ const HeroPage = () => {
             Get Started
           </motion.button>
         </motion.div>
+
+        <h3 className="text-3xl md:text-4xl font-bold leading-relaxed">
+            Sign up, find events, and begin your <br /> volunteering journey.
+          </h3>
       </div>
     </>
   );
