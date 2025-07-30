@@ -5,7 +5,7 @@ function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="flex items-center justify-between fixed top-4 left-4 right-4 z-50 p-4 transition-all duration-300 bg-white/80 text-blue-700 rounded-3xl shadow-xl backdrop-blur-lg">
+    <header className="flex items-center justify-between fixed top-4 left-4 right-4 z-50 p-4 transition-all duration-300 bg-white/50 text-blue-700 rounded-3xl shadow-xl backdrop-blur-lg">
       {/* Left: Logo */}
       <div className="flex items-center space-x-2">
         <img src={Logo} alt="Spark Logo" className="w-32 md:w-36 h-auto" />
