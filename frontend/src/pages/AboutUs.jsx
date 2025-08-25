@@ -42,7 +42,7 @@ const AboutUs = () => {
              />
                <motion.div className="absolute inset-0 bg-black bg-opacity-50 z-10" />
                 
-                 <div className="relative z-20 flex flex-col justify-between h-full">
+                 <div className="relative z-20 flex flex-col items-center justify-between h-full">
 
                           <div className="flex flex-col items-center justify-center px-10 md:px-40 max-w-7xl mt-24">
                             
