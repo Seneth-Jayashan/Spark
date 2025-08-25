@@ -42,7 +42,7 @@ const AboutUs = () => {
              />
                <motion.div className="absolute inset-0 bg-black bg-opacity-50 z-10" />
                 
-                 <div className="relative z-20 flex flex-col justify-between h-full">
+                 <div className="relative z-20 flex flex-col items-center justify-between h-full">
 
                           <div className="flex flex-col items-center justify-center px-10 md:px-40 max-w-7xl mt-24">
                             
@@ -117,7 +117,7 @@ const AboutUs = () => {
 
        
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }} 
-        className="flex flex-col md:flex-row items-center justify-center gap-8 text-center md:w-auto ">
+        className="flex flex-col-reverse md:flex-row items-center justify-center gap-8 text-center md:w-auto ">
          <div className=' flex-col px-4 md:px-8 max-w-xl border-2 border-blue-400 w-full rounded-lg p-5 '>
           <h2 className="mt-4 text-4xl font-semibold">Our Mission</h2>
           <p className="mt-2 text-gray-600">
