@@ -5,6 +5,57 @@ const { sendResetPassword } = require("../utils/mailer");
 require("dotenv").config();
 
 
+// ✅ Create/Register User
+exports.createUser = async (req, res) => {
+  try {
+    const {
+      user_first_name,
+      user_last_name,
+      user_address,
+      user_phone_number,
+      user_email,
+      user_password,
+      user_role,
+      user_interested
+    } = req.body;
+
+    // check if email already exists
+    const existingUser = await User.findOne({ user_email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(user_password, 12);
+
+    // handle profile picture if uploaded
+    const user_profile_picture = req.file
+      ? `/uploads/${req.file.filename}`
+      : "default-profile.png"; // fallback
+
+    // create new user
+    const newUser = new User({
+      user_first_name,
+      user_last_name,
+      user_address,
+      user_phone_number,
+      user_email,
+      user_password: hashedPassword,
+      user_profile_picture,
+      user_role: user_role || "volunteer",
+      user_interested: user_interested || []
+    });
+
+    await newUser.save();
+
+    res.status(201).json({ message: "User created successfully", user_id: newUser.user_id });
+  } catch (error) {
+    console.error("Create User Error:", error);
+    res.status(500).json({ message: "Error creating user", error });
+  }
+};
+
+
 // ✅ Get all users
 exports.getUsers = async (req, res) => {
   try {
