@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import Logo from '../assets/images/sparklogo-removebg.png';
+import { useNavigate } from 'react-router-dom';
 
 function Header() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const navigation = useNavigate();
 
   return (
     <header className="flex items-center justify-between fixed top-4 left-4 right-4 z-50 p-4 transition-all duration-300 bg-white/50 text-blue-700 rounded-3xl shadow-xl backdrop-blur-lg">
@@ -18,6 +20,18 @@ function Header() {
         <a href="/about" className="hover:text-[#FFB238] transition">About Us</a>
         <a href="/contact" className="hover:text-[#FFB238] transition">Contact</a>
       </nav>
+
+      <div className=' flex items-center justify-center gap-4'>
+
+        <button className=' w-full h-wrap rounded-full bg-white/50 border-2 py-2 px-4 whitespace-nowrap' onClick = { ()=> navigation("/login")}>
+          Log in
+        </button>
+
+         <button className=' w-full h-wrap rounded-full bg-white/50 border-2 py-2 px-4 whitespace-nowrap'onClick= { () => navigation("/roleselect")} >
+         Sign Up
+        </button>
+
+      </div>
 
       {/* Desktop Button */}
       <div className="hidden md:block">
