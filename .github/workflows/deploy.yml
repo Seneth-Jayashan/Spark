@@ -1,0 +1,67 @@
+name: CI/CD Pipeline - SPARK VMS (Fullstack)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # 1. Checkout
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # 3. Install & Build Frontend
+      - name: Install Client Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      # 4. Install & Test Backend
+      - name: Install Server Dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Run Server Tests
+        working-directory: ./backend
+        run: npm test --if-present
+
+      # # 5. Deploy (example: VPS via SSH + PM2)
+      # - name: Deploy to VPS
+      #   if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     echo "🚀 Deploying frontend + backend..."
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+      #       cd /var/www/spark-vms &&
+      #       git pull origin main &&
+      #       cd client && npm install && npm run build &&
+      #       cd ../server && npm install &&
+      #       pm2 restart spark-vms || pm2 start server.js --name spark-vms
+      #     "
