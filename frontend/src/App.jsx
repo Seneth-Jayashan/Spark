@@ -1,14 +1,16 @@
+import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Header from './Components/header';
-import Footer from './Components/footer';
-import Home from './pages/Home';
-import Contact from './pages/contactus'; // ← import Contact page
-import AboutUs from './pages/AboutUs';
+
+import ProtectedRoute from "./Components/protectedRoute";
+
+import Header from "./Components/header";
+import Footer from "./Components/footer";
+import Home from "./pages/Home";
+import Contact from "./pages/contactus";
+import AboutUs from "./pages/AboutUs";
 import RoleSelect from "./Components/RoleSelect";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
-
-
 
 
 
@@ -16,14 +18,41 @@ function App() {
   return (
     <div className="App">
       <Header />
-      
+
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/contact" element={<Contact />} /> {/* ← add contact route */}
+        <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<AboutUs />} />
-        <Route path="/roleselect" element={<RoleSelect/>} />
-        <Route path="/signup" element={<SignUpPage/>}/>
-        <Route path="/login" element={<LoginPage/>}/>
+        <Route path="/roleselect" element={<RoleSelect />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/login" element={<LoginPage />} />
+
+        {/*Protected Routes 
+        <Route
+          path="/admin-dashboard/*"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Admin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/volunteer-dashboard/*"
+          element={
+            <ProtectedRoute allowedRoles={["volunteer"]}>
+              <VolunteerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization-dashboard/*"
+          element={
+            <ProtectedRoute allowedRoles={["organizer"]}>
+              <OrganizationDashboard />
+            </ProtectedRoute>
+          }
+        />*/}
       </Routes>
 
       <Footer />
