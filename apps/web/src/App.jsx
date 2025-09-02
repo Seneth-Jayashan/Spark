@@ -8,9 +8,9 @@ import Footer from "./Components/footer";
 import Home from "./pages/Home";
 import Contact from "./pages/contactus";
 import AboutUs from "./pages/AboutUs";
-import RoleSelect from "./Components/RoleSelect";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import VerifyEmail from "./pages/VerifyEmail";
 
 
 
@@ -24,9 +24,9 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<AboutUs />} />
-        <Route path="/roleselect" element={<RoleSelect />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/verify/:token" element={<VerifyEmail />} />
 
         {/*Protected Routes 
         <Route

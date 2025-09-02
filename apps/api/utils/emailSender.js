@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT || 587),
-  secure: process.env.SMTP_SECURE === "true", // true for 465, false for 587
+  secure: process.env.SMTP_SECURE === "true",
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 
 
 const sendEmail = async (to, subject, html) => {
-  const fromEmail = process.env.FROM_EMAIL || "noreply@spark-vms.org";
+  const fromEmail = process.env.FROM_EMAIL || "no-reply@sjaywebsolutions.lk";
 
   const mailOptions = {
     from: `"SPARK VMS" <${fromEmail}>`,
@@ -45,7 +45,7 @@ const sendResetPassword = async (to, resetToken) => {
  * Send Email Verification Link
  */
 const sendVerificationLink = async (to, verifyToken) => {
-  const verifyUrl = `${process.env.CLIENT_URL}/verify-email/${verifyToken}`;
+  const verifyUrl = `${process.env.CLIENT_URL}/verify/${verifyToken}`;
 
   const html = `
     <h2>Email Verification</h2>

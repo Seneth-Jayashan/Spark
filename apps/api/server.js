@@ -5,6 +5,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
+const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
 const apiRouter = require("./router");
 
@@ -20,6 +21,8 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
+app.use(cookieParser());
+
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,

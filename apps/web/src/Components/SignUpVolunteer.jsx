@@ -1,57 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Logo from "../assets/images/sparklogo-removebg.png";
 import VSImage from "../assets/images/VSignupimage.jpg";
+import { AuthContext } from "../contexts/AuthContext";
 
 const SignUpVolunteer = () => {
+  const { signup, error } = useContext(AuthContext);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    phone: "",
-    address: "",
+    user_first_name: "",
+    user_last_name: "",
+    user_email: "",
+    user_password: "",
+    confirm_password: "",
+    user_phone_number: "",
+    user_address: "",
     terms: false,
+    user_role: 'volunteer',
   });
 
   const [errors, setErrors] = useState({});
 
-  // Validation function
+  // ✅ Validation function
   const validate = () => {
     let newErrors = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
+    if (!formData.user_first_name.trim()) {
+      newErrors.user_first_name = "First name is required";
     }
 
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
+    if (!formData.user_last_name.trim()) {
+      newErrors.user_last_name = "Last name is required";
     }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email format is invalid";
+    if (!formData.user_email) {
+      newErrors.user_email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.user_email)) {
+      newErrors.user_email = "Email format is invalid";
     }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 6 characters";
+    if (!formData.user_password) {
+      newErrors.user_password = "Password is required";
+    } else if (formData.user_password.length < 8) {
+      newErrors.user_password = "Password must be at least 8 characters";
     }
 
-    if (formData.confirmPassword !== formData.password) {
-      newErrors.confirmPassword = "Passwords do not match";
+    if (formData.confirm_password !== formData.user_password) {
+      newErrors.confirm_password = "Passwords do not match";
     }
 
-    if (!formData.phone) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^(?:0\d{9}|\+94\d{9})$/.test(formData.phone)) {
-      newErrors.phone = "Enter a valid phone (e.g. 0771234567 or +94771234567)";
+    if (!formData.user_phone_number) {
+      newErrors.user_phone_number = "Phone number is required";
+    } else if (!/^(?:0\d{9}|\+94\d{9})$/.test(formData.user_phone_number)) {
+      newErrors.user_phone_number =
+        "Enter a valid phone number (e.g. 0771234567 or +94771234567)";
     }
 
-    if (!formData.address.trim()) {
-      newErrors.address = "Address is required";
+    if (!formData.user_address.trim()) {
+      newErrors.user_address = "Address is required";
     }
 
     if (!formData.terms) {
@@ -62,7 +66,7 @@ const SignUpVolunteer = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle input changes
+  // ✅ Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -71,12 +75,17 @@ const SignUpVolunteer = () => {
     });
   };
 
-  // Submit
-  const handleSubmit = (e) => {
+  // ✅ Submit
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      alert("Volunteer signed up successfully ✅");
-      // 👉 send data to backend API here
+    if (!validate()) return;
+
+    try {
+      await signup(formData);
+      alert("Volunteer signed up successfully!");
+    } catch (err) {
+      console.log(err);
+      console.error("Signup failed:", err);
     }
   };
 
@@ -87,7 +96,7 @@ const SignUpVolunteer = () => {
         <div className="relative w-96 max-md:hidden">
           <img
             src={VSImage}
-            alt=""
+            alt="Volunteer"
             className="w-full h-full object-cover rounded-lg"
           />
           <div className="absolute inset-0 flex flex-col items-center justify-end gap-10 mb-[110px]">
@@ -103,7 +112,7 @@ const SignUpVolunteer = () => {
 
         {/* Signup form */}
         <div className="flex flex-col items-center justify-center gap-4 w-96 max-sm:w-[330px] mx-auto p-6 border-2 border-yellow-500 bg-white shadow-md rounded-lg">
-          <img src={Logo} alt="" className="w-42 h-28" />
+          <img src={Logo} alt="Logo" className="w-42 h-28" />
           <h1 className="text-2xl font-medium max-sm:text-center">
             Join As a Volunteer
           </h1>
@@ -114,14 +123,14 @@ const SignUpVolunteer = () => {
               <label className="block text-sm font-medium">First Name</label>
               <input
                 type="text"
-                name="firstName"
-                value={formData.firstName}
+                name="user_first_name"
+                value={formData.user_first_name}
                 onChange={handleChange}
                 className="w-full mt-1 p-2 border rounded-lg"
                 placeholder="Enter your first name"
               />
-              {errors.firstName && (
-                <p className="text-red-500 text-sm">{errors.firstName}</p>
+              {errors.user_first_name && (
+                <p className="text-red-500 text-sm">{errors.user_first_name}</p>
               )}
             </div>
 
@@ -130,14 +139,14 @@ const SignUpVolunteer = () => {
               <label className="block text-sm font-medium">Last Name</label>
               <input
                 type="text"
-                name="lastName"
-                value={formData.lastName}
+                name="user_last_name"
+                value={formData.user_last_name}
                 onChange={handleChange}
                 className="w-full mt-1 p-2 border rounded-lg"
                 placeholder="Enter your last name"
               />
-              {errors.lastName && (
-                <p className="text-red-500 text-sm">{errors.lastName}</p>
+              {errors.user_last_name && (
+                <p className="text-red-500 text-sm">{errors.user_last_name}</p>
               )}
             </div>
 
@@ -146,14 +155,14 @@ const SignUpVolunteer = () => {
               <label className="block text-sm font-medium">Email</label>
               <input
                 type="email"
-                name="email"
-                value={formData.email}
+                name="user_email"
+                value={formData.user_email}
                 onChange={handleChange}
                 className="w-full mt-1 p-2 border rounded-lg"
                 placeholder="you@example.com"
               />
-              {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email}</p>
+              {errors.user_email && (
+                <p className="text-red-500 text-sm">{errors.user_email}</p>
               )}
             </div>
 
@@ -162,14 +171,14 @@ const SignUpVolunteer = () => {
               <label className="block text-sm font-medium">Password</label>
               <input
                 type="password"
-                name="password"
-                value={formData.password}
+                name="user_password"
+                value={formData.user_password}
                 onChange={handleChange}
                 className="w-full mt-1 p-2 border rounded-lg"
                 placeholder="Create a password"
               />
-              {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password}</p>
+              {errors.user_password && (
+                <p className="text-red-500 text-sm">{errors.user_password}</p>
               )}
             </div>
 
@@ -180,14 +189,16 @@ const SignUpVolunteer = () => {
               </label>
               <input
                 type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
+                name="confirm_password"
+                value={formData.confirm_password}
                 onChange={handleChange}
                 className="w-full mt-1 p-2 border rounded-lg"
                 placeholder="Re-enter your password"
               />
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+              {errors.confirm_password && (
+                <p className="text-red-500 text-sm">
+                  {errors.confirm_password}
+                </p>
               )}
             </div>
 
@@ -196,14 +207,16 @@ const SignUpVolunteer = () => {
               <label className="block text-sm font-medium">Phone</label>
               <input
                 type="tel"
-                name="phone"
-                value={formData.phone}
+                name="user_phone_number"
+                value={formData.user_phone_number}
                 onChange={handleChange}
                 className="w-full mt-1 p-2 border rounded-lg"
                 placeholder="e.g., +94 771234567"
               />
-              {errors.phone && (
-                <p className="text-red-500 text-sm">{errors.phone}</p>
+              {errors.user_phone_number && (
+                <p className="text-red-500 text-sm">
+                  {errors.user_phone_number}
+                </p>
               )}
             </div>
 
@@ -212,14 +225,14 @@ const SignUpVolunteer = () => {
               <label className="block text-sm font-medium">Address</label>
               <input
                 type="text"
-                name="address"
-                value={formData.address}
+                name="user_address"
+                value={formData.user_address}
                 onChange={handleChange}
                 className="w-full mt-1 p-2 border rounded-lg"
                 placeholder="Street, City, ZIP"
               />
-              {errors.address && (
-                <p className="text-red-500 text-sm">{errors.address}</p>
+              {errors.user_address && (
+                <p className="text-red-500 text-sm">{errors.user_address}</p>
               )}
             </div>
 
@@ -247,6 +260,7 @@ const SignUpVolunteer = () => {
             >
               Sign Up
             </button>
+            {error && <p className="text-red-500">{error}</p>}
 
             {/* Login link */}
             <div className="text-center mt-4">

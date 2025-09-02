@@ -27,7 +27,7 @@ function Header() {
           Log in
         </button>
 
-         <button className=' w-full h-wrap rounded-full bg-white/50 border-2 py-2 px-4 whitespace-nowrap'onClick= { () => navigation("/roleselect")} >
+         <button className=' w-full h-wrap rounded-full bg-white/50 border-2 py-2 px-4 whitespace-nowrap'onClick= { () => navigation("/signup")} >
          Sign Up
         </button>
 

@@ -1,52 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Logo from "../assets/images/sparklogo-removebg.png";
 import OSImage from "../assets/images/OSignupimage.jpg";
+import { AuthContext } from "../contexts/AuthContext";
 
 const SignUpOrganization = () => {
+  const { signup, error } = useContext(AuthContext);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    phone: "",
-    address: "",
+    user_first_name: "",
+    user_last_name: "",
+    user_email: "",
+    user_password: "",
+    confirm_password: "",
+    user_phone_number: "",
+    user_address: "",
     terms: false,
+    user_role: 'organizer',
   });
 
   const [errors, setErrors] = useState({});
 
+  // ✅ Validation
   const validate = () => {
     let newErrors = {};
 
-    if (!formData.firstName.trim() || !/^[A-Za-z]+$/.test(formData.firstName)) {
-      newErrors.firstName =
+    if (
+      !formData.user_first_name.trim() ||
+      !/^[A-Za-z]+$/.test(formData.user_first_name)
+    ) {
+      newErrors.user_first_name =
         "First name is required and must contain only letters";
     }
-    if (!formData.lastName.trim() || !/^[A-Za-z]+$/.test(formData.lastName)) {
-      newErrors.lastName =
+
+    if (
+      !formData.user_last_name.trim() ||
+      !/^[A-Za-z]+$/.test(formData.user_last_name)
+    ) {
+      newErrors.user_last_name =
         "Last name is required and must contain only letters";
     }
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Valid email is required";
+
+    if (!/\S+@\S+\.\S+/.test(formData.user_email)) {
+      newErrors.user_email = "Valid email is required";
     }
+
     if (
-      formData.password.length < 8 ||
-      !/[A-Z]/.test(formData.password) ||
-      !/[0-9]/.test(formData.password)
+      formData.user_password.length < 8 ||
+      !/[A-Z]/.test(formData.user_password) ||
+      !/[0-9]/.test(formData.user_password)
     ) {
-      newErrors.password =
-        "Password must be at least 8 characters long, contain a number and an uppercase letter";
+      newErrors.user_password =
+        "Password must be at least 8 characters, include a number and an uppercase letter";
     }
-    if (formData.confirmPassword !== formData.password) {
-      newErrors.confirmPassword = "Passwords do not match";
+
+    if (formData.confirm_password !== formData.user_password) {
+      newErrors.confirm_password = "Passwords do not match";
     }
-    if (!/^(?:\+94\d{9}|0\d{9})$/.test(formData.phone)) {
-      newErrors.phone = "Enter a valid phone (e.g. 0771234567 or +94771234567)";
+
+    if (!/^(?:\+94\d{9}|0\d{9})$/.test(formData.user_phone_number)) {
+      newErrors.user_phone_number =
+        "Enter a valid phone number (e.g. 0771234567 or +94771234567)";
     }
-    if (!formData.address.trim()) {
-      newErrors.address = "Address is required";
+
+    if (!formData.user_address.trim()) {
+      newErrors.user_address = "Address is required";
     }
+
     if (!formData.terms) {
       newErrors.terms = "You must accept the terms";
     }
@@ -55,6 +73,7 @@ const SignUpOrganization = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ Handle input change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -63,22 +82,27 @@ const SignUpOrganization = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  // ✅ Handle submit
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      alert("Organization Sign Up Successful!");
-      console.log("Form Submitted", formData);
+    if (!validate()) return;
+
+    try {
+      await signup(formData);
+      alert("Organization signed up successfully!");
+    } catch (err) {
+      console.error("Signup failed:", err);
     }
   };
 
   return (
     <div className="flex item-center justify-center mb-20 max-sm:px-6">
       <div className="flex items-stretch justify-between gap-4">
-        {/* Left Image Section */}
+        {/* Left Image */}
         <div className="relative w-96 max-md:hidden">
           <img
             src={OSImage}
-            alt=""
+            alt="Organization signup"
             className="w-full h-full object-cover rounded-lg"
           />
           <div className="absolute inset-0 flex flex-col items-center justify-start gap-10 mt-40">
@@ -92,182 +116,144 @@ const SignUpOrganization = () => {
           </div>
         </div>
 
-        {/* Form Section */}
-        <div className="flex flex-col items-center justify-center gap-4 w-96 max-sm:w-[330px] mx-auto p-2 py-6 border-2 border-yellow-500 bg-white shadow-md rounded-lg">
-          <img src={Logo} alt="" className="w-42 h-28" />
+        {/* Form */}
+        <div className="flex flex-col items-center justify-center gap-4 w-96 max-sm:w-[330px] mx-auto p-6 border-2 border-yellow-500 bg-white shadow-md rounded-lg">
+          <img src={Logo} alt="Logo" className="w-42 h-28" />
           <h1 className="text-2xl font-medium max-sm:text-center">
             Join As an Organization Admin
           </h1>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="w-full">
             {/* First Name */}
             <div className="mb-4">
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium text-gray-700"
-              >
-                First Name
-              </label>
+              <label className="block text-sm font-medium">First Name</label>
               <input
-                id="firstName"
                 type="text"
-                name="firstName"
-                value={formData.firstName}
+                name="user_first_name"
+                value={formData.user_first_name}
                 onChange={handleChange}
                 placeholder="Enter your first name"
-                className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full mt-1 p-2 border rounded-lg"
               />
-              {errors.firstName && (
-                <p className="text-red-500 text-sm">{errors.firstName}</p>
+              {errors.user_first_name && (
+                <p className="text-red-500 text-sm">
+                  {errors.user_first_name}
+                </p>
               )}
             </div>
 
             {/* Last Name */}
             <div className="mb-4">
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Last Name
-              </label>
+              <label className="block text-sm font-medium">Last Name</label>
               <input
-                id="lastName"
                 type="text"
-                name="lastName"
-                value={formData.lastName}
+                name="user_last_name"
+                value={formData.user_last_name}
                 onChange={handleChange}
                 placeholder="Enter your last name"
-                className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full mt-1 p-2 border rounded-lg"
               />
-              {errors.lastName && (
-                <p className="text-red-500 text-sm">{errors.lastName}</p>
+              {errors.user_last_name && (
+                <p className="text-red-500 text-sm">{errors.user_last_name}</p>
               )}
             </div>
 
             {/* Email */}
             <div className="mb-4">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email Address
-              </label>
+              <label className="block text-sm font-medium">Email</label>
               <input
-                id="email"
                 type="email"
-                name="email"
-                value={formData.email}
+                name="user_email"
+                value={formData.user_email}
                 onChange={handleChange}
                 placeholder="you@example.com"
-                className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full mt-1 p-2 border rounded-lg"
               />
-              {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email}</p>
+              {errors.user_email && (
+                <p className="text-red-500 text-sm">{errors.user_email}</p>
               )}
             </div>
 
             {/* Password */}
             <div className="mb-4">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
+              <label className="block text-sm font-medium">Password</label>
               <input
-                id="password"
                 type="password"
-                name="password"
-                value={formData.password}
+                name="user_password"
+                value={formData.user_password}
                 onChange={handleChange}
                 placeholder="Create a password"
-                className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full mt-1 p-2 border rounded-lg"
               />
-              {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password}</p>
+              {errors.user_password && (
+                <p className="text-red-500 text-sm">{errors.user_password}</p>
               )}
             </div>
 
             {/* Confirm Password */}
             <div className="mb-4">
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium">
                 Confirm Password
               </label>
               <input
-                id="confirmPassword"
                 type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
+                name="confirm_password"
+                value={formData.confirm_password}
                 onChange={handleChange}
                 placeholder="Re-enter your password"
-                className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full mt-1 p-2 border rounded-lg"
               />
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+              {errors.confirm_password && (
+                <p className="text-red-500 text-sm">
+                  {errors.confirm_password}
+                </p>
               )}
             </div>
 
             {/* Phone */}
             <div className="mb-4">
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Phone Number
-              </label>
+              <label className="block text-sm font-medium">Phone Number</label>
               <input
-                id="phone"
                 type="tel"
-                name="phone"
-                value={formData.phone}
+                name="user_phone_number"
+                value={formData.user_phone_number}
                 onChange={handleChange}
                 placeholder="e.g., +94 771234567"
-                className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full mt-1 p-2 border rounded-lg"
               />
-              {errors.phone && (
-                <p className="text-red-500 text-sm">{errors.phone}</p>
+              {errors.user_phone_number && (
+                <p className="text-red-500 text-sm">
+                  {errors.user_phone_number}
+                </p>
               )}
             </div>
 
             {/* Address */}
             <div className="mb-4">
-              <label
-                htmlFor="address"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Address
-              </label>
+              <label className="block text-sm font-medium">Address</label>
               <input
-                id="address"
                 type="text"
-                name="address"
-                value={formData.address}
+                name="user_address"
+                value={formData.user_address}
                 onChange={handleChange}
                 placeholder="Street, City, ZIP"
-                className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full mt-1 p-2 border rounded-lg"
               />
-              {errors.address && (
-                <p className="text-red-500 text-sm">{errors.address}</p>
+              {errors.user_address && (
+                <p className="text-red-500 text-sm">{errors.user_address}</p>
               )}
             </div>
 
             {/* Terms */}
             <div className="mb-4 flex items-center">
               <input
-                id="terms"
                 type="checkbox"
                 name="terms"
                 checked={formData.terms}
                 onChange={handleChange}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="h-4 w-4"
               />
-              <label
-                htmlFor="terms"
-                className="ml-2 block text-sm font-medium text-gray-700"
-              >
+              <label className="ml-2 text-sm">
                 I agree to the Terms & Conditions
               </label>
             </div>
@@ -282,7 +268,9 @@ const SignUpOrganization = () => {
             >
               Sign Up
             </button>
+            {error && <p className="text-red-500">{error}</p>}
 
+            {/* Login link */}
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}

@@ -53,7 +53,7 @@ export default function Footer() {
       </div>
 
       <div className="mt-8 border-t pt-4 text-center text-xs text-gray-600">
-        © 2025 STYCODE (Pvt) Ltd. All rights reserved.
+        © 2025 OneX Solutions (Pvt) Ltd. All rights reserved.
       </div>
     </footer>
   );

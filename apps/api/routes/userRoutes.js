@@ -14,7 +14,10 @@ router.post('/signin', userController.login);
 
 router.get('/me', authMiddleware(['admin', 'volunteer', 'employee', 'organizer', 'org_member']), userController.authentication);
 
-router.post('/verify', userController.verifyEmail);
+router.post('/refresh', userController.refreshToken);
+router.post('/logout', userController.logout);
+
+router.post('/verify/:token', userController.verifyEmail);
 router.put('/update', upload.single("user_profile_picture"), userController.updateUser);
 router.delete('/delete', userController.deleteUser);
 
