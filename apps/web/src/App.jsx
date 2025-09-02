@@ -12,6 +12,10 @@ import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import VerifyEmail from "./pages/VerifyEmail";
 
+import VolunteerDashboard from "./pages/volunteer/Dashboard";
+import AdminDashboard from "./pages/admin/Dashboard";
+import OrgDashboard from "./pages/organization/Dashboard";
+
 
 
 function App() {
@@ -28,17 +32,17 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify/:token" element={<VerifyEmail />} />
 
-        {/*Protected Routes 
+        Protected Routes 
         <Route
-          path="/admin-dashboard/*"
+          path="/dashboard/admin/*"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              <Admin />
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/volunteer-dashboard/*"
+          path="/dashboard/volunteer/*"
           element={
             <ProtectedRoute allowedRoles={["volunteer"]}>
               <VolunteerDashboard />
@@ -46,13 +50,13 @@ function App() {
           }
         />
         <Route
-          path="/organization-dashboard/*"
+          path="/dashboard/organizer/*"
           element={
             <ProtectedRoute allowedRoles={["organizer"]}>
-              <OrganizationDashboard />
+              <OrgDashboard />
             </ProtectedRoute>
           }
-        />*/}
+        />
       </Routes>
 
       <Footer />

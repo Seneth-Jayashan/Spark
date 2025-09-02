@@ -1,25 +1,15 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+// ProtectedRoute.js
+import { useContext } from "react";
+import { Navigate } from "react-router-dom";
+import { AuthContext } from "../contexts/AuthContext";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const token = localStorage.getItem('token');
+  const { user } = useContext(AuthContext);
 
-  if (!token) {
-    return <Navigate to="/signin" />;
-  }
+  if (!user) return <Navigate to="/login" />;
+  if (!allowedRoles.includes(user.role)) return <Navigate to="/unauthorized" />;
 
-  try {
-    const userRole = JSON.parse(atob(token.split('.')[1])).role;
-
-    if (!allowedRoles.includes(userRole)) {
-      return <Navigate to="/logout" />;
-    }
-
-    return children;
-  } catch (error) {
-    console.error('Invalid token:', error);
-    return <Navigate to="/signin" />;
-  }
+  return children;
 };
 
 export default ProtectedRoute;

@@ -1,7 +1,6 @@
 // src/contexts/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import api from "../api/axios"; // Axios instance
-import Swal from "sweetalert2";
 
 export const AuthContext = createContext();
 

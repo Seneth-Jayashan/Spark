@@ -41,15 +41,32 @@ const LoginPage = () => {
     setError(null); // reset previous error
     try {
       const user = await login(formData.email, formData.password);
-      console.log('user', user);
       Swal.fire({
         title: "Login Successful!",
-        text: `Welcome back, ${user || "User"}!`,
+        text: `Welcome back, ${user.firstName || "User"}!`,
         icon: "success",
         confirmButtonColor: "#2563eb",
       });
 
-      navigate("/dashboard"); // redirect after login success
+      switch (user.role) {
+        case "admin":
+          navigate("/dashboard/admin");
+          break;
+        case "volunteer":
+          navigate("/dashboard/volunteer");
+          break;
+        case "employee":
+          navigate("/dashboard/employee");
+          break;
+        case "organizer":
+          navigate("/dashboard/organizer");
+          break;
+        case "org_member":
+          navigate("/dashboard/org-member");
+          break;
+        default:
+          navigate("/");
+      }    
     } catch (err) {
       Swal.fire({
         title: "Login Failed",
