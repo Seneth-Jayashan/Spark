@@ -8,6 +8,9 @@ const authMiddleware = require('../middleware/authMiddleware');
 // Get all organizes
 router.get('/', organizationController.getAllOrganization);
 
+// Get an organize by user ID
+router.get('/my', authMiddleware(['organizer','admin']),organizationController.getOwnOrg);
+
 // Get a specific organize by ID
 router.get('/:org_id', organizationController.getOrganizationById);
 
@@ -17,14 +20,11 @@ router.post(
   organizationController.createOrganization
 );
 
-// Get an organize by user ID
-router.get('/my', organizationController.getOwnOrg);
-
 // Add member to an organize
 router.post('/:org_id/add-member', organizationController.addMember);
 
 // Update an existing organize
-router.put('/:org_id', organizationController.updateOrganization);
+router.put('/:org_id',authMiddleware(['organizer','admin']),uploadMiddleware.single('org_logo'), organizationController.updateOrganization);
 
 // Update organize status
 router.patch('/:org_id/status', organizationController.updateOrganizationStatus);

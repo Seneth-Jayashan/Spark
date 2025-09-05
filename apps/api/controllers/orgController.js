@@ -30,27 +30,52 @@ exports.getOrganizationById = async (req, res) => {
 };
 
 exports.createOrganization = async (req, res) => {
-    try {
-        const {
-            org_name,
-            org_description,
-        } = req.body;
+  try {
+    const {
+      org_name,
+      org_description,
+      org_type,
+      industry,
+      contact_email,
+      contact_phone,
+      website,
+      address,
+      social_links,
+    } = req.body;
 
-        const org_owner = req.user.id;
+    // Parse nested fields (they come as JSON strings from FormData)
+    const parsedAddress = address ? JSON.parse(address) : {};
+    const parsedSocialLinks = social_links ? JSON.parse(social_links) : {};
 
-        const newOrganization = new Organization({
-            org_name,
-            org_description,
-            org_logo : req.file ? `/uploads/${req.file.filename}` : "",
-            org_owner,
-        });
+    const org_owner = req.user.id;
 
-        await newOrganization.save();
-        res.status(200).json({ message: 'Organization created successfully', organization: newOrganization });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    // Check if user already has an org
+    const ownOrg = await Organization.findOne({ org_owner });
+    if (ownOrg) {
+      return res.status(401).json({ message: "You already have an organization" });
     }
+
+    const newOrganization = new Organization({
+      org_name,
+      org_description,
+      org_logo: req.file ? `/uploads/${req.file.filename}` : "",
+      org_owner,
+      org_type,
+      industry,
+      contact_email,
+      contact_phone,
+      website,
+      address: parsedAddress,
+      social_links: parsedSocialLinks,
+    });
+
+    await newOrganization.save();
+    res.status(200).json({ message: "Organization created successfully", organization: newOrganization });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 
 exports.getOwnOrg = async (req, res) => {
     try {
@@ -68,25 +93,43 @@ exports.getOwnOrg = async (req, res) => {
 };
 
 exports.updateOrganization = async (req, res) => {
-    try {
-        const { org_id } = req.params;
-        const updates = req.body;
+  try {
+    const { org_id } = req.params;
+    const updates = { ...req.body };
 
-        const updatedOrganization = await Organization.findOneAndUpdate(
-            { org_id},
-            updates,
-            { new: true }
-        );
 
-        if (!updatedOrganization) {
-            return res.status(404).json({ message: 'Organization not found' });
-        }
-
-        res.status(200).json({ message: 'Organization updated successfully', organization: updatedOrganization });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    // Parse nested fields if they exist
+    if (updates.address) {
+      updates.address = JSON.parse(updates.address);
     }
+    if (updates.social_links) {
+      updates.social_links = JSON.parse(updates.social_links);
+    }
+
+    // Handle uploaded logo
+    if (req.file) {
+      updates.org_logo = `/uploads/${req.file.filename}`;
+    }
+
+    const updatedOrganization = await Organization.findOneAndUpdate(
+      { org_id },
+      updates,
+      { new: true } // return the updated document
+    );
+
+    if (!updatedOrganization) {
+      return res.status(404).json({ message: "Organization not found" });
+    }
+
+    res.status(200).json({
+      message: "Organization updated successfully",
+      organization: updatedOrganization,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 
 exports.updateOrganizationStatus = async (req,res) => {
     try{

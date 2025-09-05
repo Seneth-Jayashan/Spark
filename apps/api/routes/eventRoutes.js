@@ -3,6 +3,7 @@ const router = express.Router();
 
 const eventController = require('../controllers/eventController');
 const uploadMiddleware = require('../middleware/uploadMiddleware');
+const authMiddleware = require('../middleware/authMiddleware');
 
 // Get all events
 router.get('/', eventController.getAllEvents);
@@ -13,7 +14,8 @@ router.get('/:event_id', eventController.getEventById);
 // Create a new event (with multiple image uploads)
 router.post(
   '/event',
-  uploadMiddleware.array('event_images'), // Accept multiple images
+  uploadMiddleware.array('event_images'),
+  authMiddleware(['organizer','admin','org_member']),
   eventController.addEvent
 );
 

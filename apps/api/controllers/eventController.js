@@ -1,5 +1,6 @@
 const Event = require('../models/event');
 const Member = require('../models/eventMember');
+const Organization = require('../models/organization');
 
 exports.getAllEvents = async (req, res) => {
     try {
@@ -56,8 +57,16 @@ exports.addEvent = async (req, res) => {
             event_date,
             event_venue,
             event_geolocation,
-            event_org,
+            need_count,
         } = req.body;
+
+        const org_owner = req.user.id;
+
+        const org = await Organization.findOne({org_owner});
+        if(!org){
+            return res.status(401).json({message:'First Create a Organization'});
+        }
+        const event_org = org.org_id;
 
         const event = new Event({
             event_name,
@@ -67,7 +76,8 @@ exports.addEvent = async (req, res) => {
             event_date,
             event_venue,
             event_geolocation,
-            event_org
+            event_org,
+            need_count
         });
 
         await event.save();
@@ -93,7 +103,8 @@ exports.updateEvent = async (req, res) => {
             event_time,
             event_date,
             event_venue,
-            event_geolocation
+            event_geolocation,
+            need_count,
         } = req.body;
 
         const event_images = req.files?.length? req.files.map(file => `/uploads/${file.filename}`): event.event_images || [];
@@ -105,7 +116,8 @@ exports.updateEvent = async (req, res) => {
             event_date,
             event_venue,
             event_geolocation,
-            event_images
+            event_images,
+            need_count
         };
 
         const updatedEvent = await Event.findOneAndUpdate({ event_id }, updateData, { new: true });

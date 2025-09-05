@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { OrgProvider } from "../contexts/OrgContext";
 
 
 import Dashboard from "../pages/organizer/Dashboard";
@@ -14,12 +15,13 @@ import OrgUpdate from "../pages/organizer/organization/update";
 
 export default function OrgDashboard() {
   return (
+    
     <Routes>
       <Route path="/" element={<Dashboard />} />
 
       <Route path="event/events" element={<Events />} />
       <Route path="event/create" element={<EventCreate />} />
-      <Route path="event/update" element={<EventUpdate />} />
+      <Route path="event/update/:event_id " element={<EventUpdate />} />
 
       <Route path="org/view" element={<ViewOrg />} />
       <Route path="org/create" element={<OrgCreate />} />
@@ -28,7 +30,7 @@ export default function OrgDashboard() {
       <Route path="/profile" element={<Profile />} />
 
 
-      <Route path="*" element={<Navigate to="/dashboard/organizer" replace />} />
+      {/* <Route path="*" element={<Navigate to="/dashboard/organizer" replace />} /> */}
     </Routes>
   );
 }

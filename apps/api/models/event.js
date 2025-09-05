@@ -11,8 +11,10 @@ const eventSchema = new Schema({
     event_time: {type:String,required:true},
     event_venue: {type:String, required:true},
     event_geolocation: {type:String, required:true},
-    event_status: {type:Boolean, default:false},
+    event_status: {type:Boolean, default:true},
     event_org: {type:Number, required:true},
+    need_count: {type: Number, required:true},
+    volunteer_count: {type: Number, default:0},
     created_at: {type:Date, default:Date.now()}
 });
 
