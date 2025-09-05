@@ -251,13 +251,20 @@ exports.authentication = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json(user);
+    res.status(200).json({
+      user: {
+        id: user.user_id,
+        email: user.user_email,
+        role: user.user_role,
+        firstName: user.user_first_name,
+        lastName: user.user_last_name,
+      },
+    });
   } catch (error) {
     console.error("Authentication error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 // ✅ Verify Email
 exports.verifyEmail = async (req, res) => {

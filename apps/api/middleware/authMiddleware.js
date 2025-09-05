@@ -1,30 +1,42 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
-const SECRET_KEY = process.env.SECRET_KEY;
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET;
 
-const authMiddleware = (roles) => (req, res, next) => {
-    const tokenHeader = req.header('Authorization');
-    const token = tokenHeader && tokenHeader.startsWith("Bearer ") ? tokenHeader.split(" ")[1] : null;
+const authMiddleware = (roles = []) => (req, res, next) => {
+  const tokenHeader = req.header("Authorization");
+  const token =
+    tokenHeader && tokenHeader.startsWith("Bearer ")
+      ? tokenHeader.split(" ")[1]
+      : null;
 
-    if (!token) {
-        return res.status(401).json({ message: 'Access denied. No token provided.' });
+  if (!token) {
+    return res
+      .status(401)
+      .json({ message: "Access denied. No token provided." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.user = decoded;
+
+    // ✅ If roles are passed, check them
+    if (roles.length > 0 && !roles.includes(req.user.role)) {
+      return res
+        .status(403)
+        .json({ message: "Access denied. You do not have permission." });
     }
 
-    try {
-        const decoded = jwt.verify(token, SECRET_KEY);
-        req.user = decoded;
-
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ message: 'Access denied. You do not have permission' });
-        }
-
-        next();
-    } catch (error) {
-        if (error.name === "TokenExpiredError") {
-            return res.status(401).json({ message: "Session expired. Please log in again." });
-        }
-        return res.status(400).json({ message: 'Invalid token', error: error.message });
+    next();
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(401)
+        .json({ message: "Session expired. Please log in again." });
     }
+    return res
+      .status(400)
+      .json({ message: "Invalid token", error: error.message });
+  }
 };
 
 module.exports = authMiddleware;

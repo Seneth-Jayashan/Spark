@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const path  = require("path");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
@@ -42,6 +43,7 @@ app.get("/health", (_req, res) => {
 
 // -- API
 app.use("/api/v1", apiRouter);
+app.use('/uploads', express.static(path.join(__dirname,'uploads')));
 
 // -- 404
 app.use((req, res, _next) => {

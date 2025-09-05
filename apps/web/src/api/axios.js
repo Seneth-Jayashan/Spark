@@ -2,7 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true, // send refresh token cookie
+  withCredentials: true, // send httpOnly refresh token cookie
 });
 
 let isRefreshing = false;
@@ -13,27 +13,27 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+// Request interceptor: attach access token
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("accessToken"); // memory alternative
+  const token = sessionStorage.getItem("accessToken");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
+// Response interceptor: handle 401 & refresh
 api.interceptors.response.use(
-  (res) => res,
+  res => res,
   async (error) => {
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return axios(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
+        }).then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return axios(originalRequest);
+        }).catch(err => Promise.reject(err));
       }
 
       originalRequest._retry = true;
@@ -48,6 +48,8 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("user");
         return Promise.reject(err);
       } finally {
         isRefreshing = false;

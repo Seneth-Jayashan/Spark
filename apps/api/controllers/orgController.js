@@ -1,0 +1,266 @@
+const Organization = require('../models/organization');
+const Member = require('../models/orgMember');
+const User = require('../models/user');
+
+exports.getAllOrganization = async (req, res) => {
+    try {
+        const organizations = await Organization.find();
+        if (!organizations || organizations.length === 0) {
+            return res.status(404).json({ message: 'No organization found' });
+        }
+        res.status(200).json({ message: `${organizations.length} organization found`, organizations });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getOrganizationById = async (req, res) => {
+    try {
+        const { org_id } = req.params;
+        const organization = await Organization.findOne({ org_id});
+
+        if (!organization) {
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        res.status(200).json({ message: 'Organization found', organization });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.createOrganization = async (req, res) => {
+    try {
+        const {
+            org_name,
+            org_description,
+        } = req.body;
+
+        const org_owner = req.user.id;
+
+        const newOrganization = new Organization({
+            org_name,
+            org_description,
+            org_logo : req.file ? `/uploads/${req.file.filename}` : "",
+            org_owner,
+        });
+
+        await newOrganization.save();
+        res.status(200).json({ message: 'Organization created successfully', organization: newOrganization });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getOwnOrg = async (req, res) => {
+    try {
+        const org_owner = req.user.id;
+        const organization = await Organization.findOne({ org_owner});
+
+        if (!organization) {
+            return res.status(404).json({ message: 'No Organizations' });
+        }
+
+        res.status(200).json({ message: 'Organization found', organization });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updateOrganization = async (req, res) => {
+    try {
+        const { org_id } = req.params;
+        const updates = req.body;
+
+        const updatedOrganization = await Organization.findOneAndUpdate(
+            { org_id},
+            updates,
+            { new: true }
+        );
+
+        if (!updatedOrganization) {
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        res.status(200).json({ message: 'Organization updated successfully', organization: updatedOrganization });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updateOrganizationStatus = async (req,res) => {
+    try{
+        const {org_id} = req.params;
+        const {org_status} = req.body;
+
+        const organization = await Organization.findOne({org_id});
+
+        if(!organization){
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        await Organization.findOneAndUpdate(
+            {org_id},
+            {org_status},
+            {new:true}
+        )
+
+    }catch(error){
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.deleteOrganization = async (req, res) => {
+    try {
+        const { org_id } = req.params;
+
+        const deletedOrganization = await Organization.findOneAndDelete({ org_id});
+
+        if (!deletedOrganization) {
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        res.status(200).json({ message: 'Organization deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.addMember = async (req,res) => {
+    try{
+        const {org_id} = req.params;
+
+        const org = await Organization.findOne({org_id});
+
+        if(!org){
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        const {user_first_name,user_last_name,user_address,user_phone_number,user_email,user_password} = req.body;
+
+        const userExist = await User.findOne({user_email});
+
+        if(userExist) return res.status(401).json({message: 'Email already registered'});
+
+        const hashedPassword = await bcrypt.hash(user_password,12);
+
+        const user = new User({
+            user_first_name,
+            user_last_name,
+            user_phone_number,
+            user_address,
+            user_profile_picture: req.file ? `/uploads/${req.file.filename}` : "",
+            user_email,
+            user_password: hashedPassword,
+            user_role : "org_member",
+        });
+
+        await user.save();
+
+
+        const newMember = new Member({
+            user_id:user.user_id,
+            org_id
+        });
+
+        await newMember.save();
+
+        res.status(200).json({ message: 'Member Added successfully'});
+
+    }catch(error){
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.getMembersByOrgId = async(req,res) => {
+    try{
+        const {org_id} = req.params;
+
+        const org = await Organization.findOne({org_id});
+
+        if(!org){
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        const members = await Member.find({org_id});
+
+        if(!members){
+            return res.status(404).json({message: '0 members found'});
+        }
+
+        res.status(200).json({message: `${members.length} members found`, members});
+    }catch(error){
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.getOrgByUserId = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+
+        const userMember = await Member.findOne({user_id});
+
+        if(!userMember){
+            return res.status(404).json({ message: "User isn't associate with any organization" });
+        }
+
+        const org = await Organization.findOne({ org_id:userMember.org_id });
+
+        if (!org) {
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        res.status(200).json({ message: 'Organization found', org });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.removeMember = async(req,res) => {
+    try{
+        const {org_id} = req.params;
+        const {user_id} = req.body;
+
+        const org = await Organization.findOne({org_id});
+
+        if(!org){
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        const member = await Member.findOne({user_id});
+        if(!member){
+            return res.status(403).json({ message: "User isn't associate with any organization" });
+        }
+
+        const orgMember = await Member.findOne({ user_id, org_id });
+        if (!orgMember) {
+            return res.status(403).json({ message: "User isn't associate with this organization" });
+        }
+
+        await Member.findOneAndDelete({user_id,org_id});
+
+        res.status(200).json({message: "User remove from this organization"});
+    }catch(error){
+        res.status(500).json({ message: error.message });
+    }
+}
+
+
+exports.removeAllMembersFromOrg = async (req, res) => {
+    try {
+        const { org_id } = req.params;
+
+        const org = await Organization.findOne({ org_id });
+        if (!org) {
+            return res.status(404).json({ message: 'Organization not found' });
+        }
+
+        const result = await Member.deleteMany({ org_id });
+
+        res.status(200).json({ 
+            message: `${result.deletedCount} member(s) removed from the organization.` 
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

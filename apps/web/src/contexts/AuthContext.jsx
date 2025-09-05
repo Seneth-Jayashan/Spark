@@ -1,31 +1,53 @@
-// src/contexts/AuthContext.jsx
-import React, { createContext, useState, useEffect } from "react";
-import api from "../api/axios"; // Axios instance
+import React, { createContext, useState, useEffect, useRef  } from "react";
+import api from "../api/axios";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // logged-in user object
-  const [loading, setLoading] = useState(true); // initial auth check
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ---- Refresh token & auto-login ----
+  const refreshCalled = useRef(false); 
+
+
+  // ---- Auto-login & token refresh ----
   const refreshToken = async () => {
     try {
-      const res = await api.post("/auth/refresh"); // server reads httpOnly cookie
-      if (res.data.user) {
-        setUser(res.data.user);
+      const res = await api.post("/auth/refresh");
+      const token = res.data.accessToken;
+
+      if (token) {
+        sessionStorage.setItem("accessToken", token);
+
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+        const me = await api.get("/auth/me");
+        setUser(me.data.user);
+        sessionStorage.setItem("user", JSON.stringify(me.data.user));
+      } else {
+        setUser(null);
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("user");
       }
     } catch (err) {
       console.error("Refresh failed", err);
       setUser(null);
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("user");
     } finally {
       setLoading(false);
     }
   };
 
+
   useEffect(() => {
-    refreshToken();
+      if (!refreshCalled.current) {
+        refreshCalled.current = true; 
+        const storedUser = sessionStorage.getItem("user");
+        if (storedUser) setUser(JSON.parse(storedUser));
+        refreshToken();
+      }
   }, []);
 
   // ---- SIGNUP ----
@@ -35,7 +57,6 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post("/auth/signup", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      // Signup only sends email verification, no tokens stored yet
       return res.data;
     } catch (err) {
       const msg = err.response?.data?.message || "Signup failed";
@@ -49,8 +70,13 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const res = await api.post("/auth/signin", { email, password });
-      // server sets httpOnly refresh token cookie
-      if (res.data.user) setUser(res.data.user);
+
+      if (res.data.accessToken) sessionStorage.setItem("accessToken", res.data.accessToken);
+      if (res.data.user) {
+        setUser(res.data.user);
+        sessionStorage.setItem("user", JSON.stringify(res.data.user));
+      }
+
       return res.data.user;
     } catch (err) {
       const msg = err.response?.data?.message || "Login failed";
@@ -62,11 +88,13 @@ export const AuthProvider = ({ children }) => {
   // ---- LOGOUT ----
   const logout = async () => {
     try {
-      await api.post("/auth/logout"); // server clears refresh token cookie
+      await api.post("/auth/logout");
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
       setUser(null);
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("user");
     }
   };
 
