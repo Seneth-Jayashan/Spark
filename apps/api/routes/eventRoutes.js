@@ -8,6 +8,9 @@ const authMiddleware = require('../middleware/authMiddleware');
 // Get all events
 router.get('/', eventController.getAllEvents);
 
+// Get all public events
+router.get('/public', eventController.getAllPublicEvents);
+
 // Get a specific event by ID
 router.get('/:event_id', eventController.getEventById);
 

@@ -16,6 +16,20 @@ exports.getAllEvents = async (req, res) => {
     }
 };
 
+exports.getAllPublicEvents = async (req, res) => {
+    try {
+        const events = await Event.find({event_status:true});
+
+        if (!events || events.length === 0) {
+            return res.status(404).json({ message: 'No events found' });
+        }
+
+        res.status(200).json({ message: `${events.length} events found`, events });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 exports.getEventById = async (req, res) => {
     try {
         const {event_id} = req.params;

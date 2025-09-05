@@ -58,6 +58,27 @@ export const EventProvider = ({ children }) => {
   };
 
   // ----------------------------
+  // Fetch all public events (no auth required)
+  // ----------------------------
+  const fetchPublicEvents = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await api.get("/event/public"); // Make sure your backend supports this endpoint
+      setEvents(res.data.events || []);
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Failed to fetch public events");
+      setEvents([]);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // ----------------------------
   // Create a new event
   // ----------------------------
   const createEvent = async (formData) => {
@@ -238,6 +259,7 @@ export const EventProvider = ({ children }) => {
         removeAllMembers,
         getMembers,
         getEventsByUser,
+        fetchPublicEvents
       }}
     >
       {children}

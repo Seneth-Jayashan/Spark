@@ -10,6 +10,9 @@ import AboutUs from "./pages/AboutUs";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import VerifyEmail from "./pages/VerifyEmail";
+import LogoutPage from "./pages/LogoutPage";
+import Events from "./pages/Events";
+
 
 import VolunteerDashboard from "./pages/volunteer/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -17,6 +20,8 @@ import OrgDashboard from "./routes/OrgDashboard";
 
 import MainLayout from "./layouts/MainLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
+
+
 
 
 
@@ -35,6 +40,8 @@ function App() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify/:token" element={<VerifyEmail />} />
+        <Route path="/logout" element={<LogoutPage />} />
+        <Route path="/events" element={<Events />} />
       </Route>
 
       { <Route element={<DashboardLayout />}>

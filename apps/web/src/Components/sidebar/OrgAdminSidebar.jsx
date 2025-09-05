@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation,useNavigate  } from "react-router-dom";
 import { 
   FaTachometerAlt, 
   FaTasks, 
@@ -13,6 +13,7 @@ import { useOrg } from "../../contexts/OrgContext";
 const OrgAdminSidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const { currentOrg, loading } = useOrg();
+  const navigate = useNavigate();
 
   // Only decide if user has org after loading completes
   const hasOrg = !loading && !!currentOrg;
@@ -87,7 +88,8 @@ const OrgAdminSidebar = ({ isOpen, setIsOpen }) => {
 
       {/* Logout */}
       <div className="p-4 border-t border-gray-700 mt-auto">
-        <button className="flex items-center gap-3 w-full p-3 bg-red-600 hover:bg-red-700 rounded transition">
+        <button className="flex items-center gap-3 w-full p-3 bg-red-600 hover:bg-red-700 rounded transition"
+        onClick={() => navigate("/logout")}>
           <FaSignOutAlt />
           {isOpen && <span className="font-medium">Logout</span>}
         </button>

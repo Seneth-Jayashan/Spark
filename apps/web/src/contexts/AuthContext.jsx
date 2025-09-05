@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef  } from "react";
+import React, { createContext, useState, useEffect, useRef ,useContext  } from "react";
 import api from "../api/axios";
 
 export const AuthContext = createContext();
@@ -127,3 +127,8 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
+
