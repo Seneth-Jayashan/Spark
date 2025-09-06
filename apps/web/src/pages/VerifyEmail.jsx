@@ -25,7 +25,7 @@ const VerifyEmail = () => {
           confirmButtonColor: "#2563eb",
         });
 
-        navigate("/signin");
+        navigate("/login");
       } catch (error) {
         console.error("Verification error:", error);
         setMessage(error.message || "Invalid or expired token");
