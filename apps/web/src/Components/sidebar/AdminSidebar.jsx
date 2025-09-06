@@ -1,21 +1,24 @@
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  FaTachometerAlt, 
-  FaTasks, 
-  FaCalendarAlt, 
-  FaUser, 
-  FaBars, 
-  FaSignOutAlt 
+import {
+  FaTachometerAlt,
+  FaBuilding,
+  FaUsers,
+  FaUserShield,
+  FaCog,
+  FaBars,
+  FaSignOutAlt,
 } from "react-icons/fa";
 
-const AdminSidebar = ({ isOpen, setIsOpen }) => {
+const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
+  const navigate = useNavigate();
+
   const menuItems = [
-    { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt /> },
-    { name: "My Tasks", path: "/dashboard/my-tasks", icon: <FaTasks /> },
-    { name: "My Events", path: "/dashboard/my-events", icon: <FaCalendarAlt /> },
-    { name: "Profile", path: "/dashboard/profile", icon: <FaUser /> },
+    { name: "Dashboard", path: "/dashboard/admin", icon: <FaTachometerAlt /> },
+    { name: "Organizations", path: "/dashboard/admin/organizations", icon: <FaBuilding /> },
+    { name: "Users", path: "/dashboard/admin/users", icon: <FaUsers /> },
+    { name: "Admins", path: "/dashboard/admin/admins", icon: <FaUserShield /> },
+    { name: "Settings", path: "/dashboard/admin/settings", icon: <FaCog /> },
   ];
 
   return (
@@ -23,17 +26,27 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
       animate={{ width: isOpen ? 240 : 64 }}
       className="fixed top-0 left-0 h-full bg-gray-900 text-gray-100 flex flex-col shadow-lg z-50"
     >
-      {/* Logo and Toggle */}
+      {/* Logo & Toggle */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         <div className="flex items-center gap-2 flex-col">
-          <span className={`${isOpen ? "w-32" : "w-8"} overflow-hidden transition-all duration-300`}>
-            <img src="../Logo.png" className="w-full h-auto" />
+          <span
+            className={`${
+              isOpen ? "w-32" : "w-8"
+            } overflow-hidden transition-all duration-300`}
+          >
+            <img src="../Logo.png" alt="Logo" className="w-full h-auto" />
           </span>
-          {isOpen && <span className="font-semibold md:text-3xl text-lg">SPARK - Admin</span>}
+          {isOpen && (
+            <span className="font-semibold md:text-2xl text-lg">
+              SPARK - SuperAdmin
+            </span>
+          )}
         </div>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`p-2 rounded transition ${!isOpen ? "bg-gray-900" : "hover:bg-gray-800"}`}
+          className={`p-2 rounded transition ${
+            !isOpen ? "bg-gray-900" : "hover:bg-gray-800"
+          }`}
         >
           <FaBars />
         </button>
@@ -70,8 +83,11 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
       </nav>
 
       {/* Logout */}
-      <div className="p-4 border-t border-gray-700">
-        <button className="flex items-center gap-3 w-full p-3 bg-red-600 hover:bg-red-700 rounded transition">
+      <div className="p-4 border-t border-gray-700 mt-auto">
+        <button
+          className="flex items-center gap-3 w-full p-3 bg-red-600 hover:bg-red-700 rounded transition"
+          onClick={() => navigate("/logout")}
+        >
           <FaSignOutAlt />
           {isOpen && <span className="font-medium">Logout</span>}
         </button>
@@ -80,4 +96,4 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
   );
 };
 
-export default AdminSidebar;
+export default SuperAdminSidebar;

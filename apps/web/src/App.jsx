@@ -12,10 +12,12 @@ import LoginPage from "./pages/LoginPage";
 import VerifyEmail from "./pages/VerifyEmail";
 import LogoutPage from "./pages/LogoutPage";
 import Events from "./pages/Events";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./Components/ResetPassword";
 
 
-import VolunteerDashboard from "./pages/volunteer/Dashboard";
-import AdminDashboard from "./pages/admin/Dashboard";
+import VolunteerDashboard from "./routes/VolunteerDashboard";
+import AdminDashboard from "./routes/AdminDashboard";
 import OrgDashboard from "./routes/OrgDashboard";
 
 import MainLayout from "./layouts/MainLayout";
@@ -42,6 +44,8 @@ function App() {
         <Route path="/verify/:token" element={<VerifyEmail />} />
         <Route path="/logout" element={<LogoutPage />} />
         <Route path="/events" element={<Events />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
       </Route>
 
       { <Route element={<DashboardLayout />}>

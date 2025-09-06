@@ -108,9 +108,7 @@ export const EventProvider = ({ children }) => {
       const res = await api.put(`/event/${event_id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setEvents((prev) =>
-        prev.map((evt) => (evt.event_id === event_id ? res.data : evt))
-      );
+
       setCurrentEvent(res.data);
       return res.data;
     } catch (err) {

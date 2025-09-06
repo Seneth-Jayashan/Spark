@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef ,useContext  } from "react";
+import React, { createContext, useState, useEffect, useRef, useContext } from "react";
 import api from "../api/axios";
 
 export const AuthContext = createContext();
@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const refreshCalled = useRef(false); 
+  const refreshCalled = useRef(false);
 
 
   // ---- Auto-login & token refresh ----
@@ -19,12 +19,9 @@ export const AuthProvider = ({ children }) => {
 
       if (token) {
         sessionStorage.setItem("accessToken", token);
-
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        const me = await api.get("/auth/me");
-        setUser(me.data.user);
-        sessionStorage.setItem("user", JSON.stringify(me.data.user));
+        await fetchMe(); // fetch user after refresh
       } else {
         setUser(null);
         sessionStorage.removeItem("accessToken");
@@ -40,15 +37,61 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ---- Get current logged-in user ----
+  const fetchMe = async () => {
+    try {
+      const res = await api.get("/auth/me");
+      setUser(res.data.user);
+      sessionStorage.setItem("user", JSON.stringify(res.data.user));
+      return res.data.user;
+    } catch (err) {
+      console.error("Fetch user failed", err);
+      setUser(null);
+      return null;
+    }
+  };
 
-  useEffect(() => {
-      if (!refreshCalled.current) {
-        refreshCalled.current = true; 
-        const storedUser = sessionStorage.getItem("user");
-        if (storedUser) setUser(JSON.parse(storedUser));
-        refreshToken();
-      }
-  }, []);
+  // ---- Update profile ----
+  const updateProfile = async (formData) => {
+    try {
+      const res = await api.put("/auth/update", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setUser(res.data);
+      sessionStorage.setItem("user", JSON.stringify(res.data));
+      return res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Profile update failed";
+      setError(msg);
+      throw new Error(msg);
+    }
+  };
+
+  // ---- FORGOT PASSWORD ----
+  const forgotPassword = async (email) => {
+    try {
+      setError(null);
+      const res = await api.post("/auth/forgotpassword", { email });
+      return res.data; // { message: "Reset link sent successfully" }
+    } catch (err) {
+      const msg = err.response?.data?.message || "Forgot password failed";
+      setError(msg);
+      throw new Error(msg);
+    }
+  };
+
+  // ---- RESET PASSWORD ----
+  const resetPassword = async (token, newPassword) => {
+    try {
+      setError(null);
+      const res = await api.post(`/auth/reset-password/${token}`, { password: newPassword });
+      return res.data; // { message: "Password reset successful" }
+    } catch (err) {
+      const msg = err.response?.data?.message || "Reset password failed";
+      setError(msg);
+      throw new Error(msg);
+    }
+  };
 
   // ---- SIGNUP ----
   const signup = async (formData) => {
@@ -109,6 +152,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ---- INIT ----
+  useEffect(() => {
+    if (!refreshCalled.current) {
+      refreshCalled.current = true;
+      const storedUser = sessionStorage.getItem("user");
+      if (storedUser) setUser(JSON.parse(storedUser));
+      refreshToken();
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -121,6 +174,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         verifyEmail,
         refreshToken,
+        forgotPassword,  // ✅
+        resetPassword,   // ✅
       }}
     >
       {children}
@@ -128,7 +183,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
-
+export const useAuth = () => useContext(AuthContext);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   FaTachometerAlt, 
@@ -19,6 +19,7 @@ const menuItems = [
 
 const StaffSidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const navigate = useNavigate();
 
   return (
     <motion.div
@@ -75,7 +76,8 @@ const StaffSidebar = () => {
 
       {/* Logout */}
       <div className="p-4 border-t border-gray-700">
-        <button className="flex items-center gap-3 w-full p-3 bg-red-600 hover:bg-red-700 rounded transition">
+        <button className="flex items-center gap-3 w-full p-3 bg-red-600 hover:bg-red-700 rounded transition"
+        onClick={() => navigate("/logout")}>
           <FaSignOutAlt />
           {isOpen && <span className="font-medium">Logout</span>}
         </button>

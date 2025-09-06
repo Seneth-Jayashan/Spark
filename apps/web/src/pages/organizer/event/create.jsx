@@ -1,7 +1,10 @@
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import MapPicker from "../../../Components/MapPicker"; // map component
+import MapPicker from "../../../Components/MapPicker"; 
 import { useEvent } from "../../../contexts/EventContext";
+import Swal from "sweetalert2";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function CreateEvent() {
   const { createEvent, loading } = useEvent();
@@ -14,12 +17,11 @@ export default function CreateEvent() {
     event_time: "",
     event_venue: "",
     event_geolocation: "",
-    need_count: "", // default volunteers needed
+    need_count: "",
   };
 
   const [formData, setFormData] = useState(initialForm);
   const [previewImages, setPreviewImages] = useState([]);
-  const [message, setMessage] = useState({ text: "", type: "" });
   const fileInputRef = useRef(null);
   const [location, setLocation] = useState(null);
 
@@ -40,7 +42,11 @@ export default function CreateEvent() {
     e.preventDefault();
 
     if (!location) {
-      alert("Please select a location on the map.");
+      Swal.fire({
+        icon: "warning",
+        title: "No location selected",
+        text: "Please select a location on the map",
+      });
       return;
     }
 
@@ -57,23 +63,36 @@ export default function CreateEvent() {
     });
 
     try {
-      setMessage({ text: "", type: "" });
       await createEvent(data);
-      setMessage({ text: "✅ Event created successfully!", type: "success" });
+
+      toast.success("✅ Event created successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
 
       // Reset
       setFormData(initialForm);
       setPreviewImages([]);
       setLocation(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+
     } catch (err) {
       console.error(err);
-      setMessage({ text: "❌ Failed to create event.", type: "error" });
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to create event. Please try again.",
+      });
     }
   };
 
   return (
     <div className="flex justify-center mt-12 px-4">
+      <ToastContainer />
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -84,20 +103,7 @@ export default function CreateEvent() {
           Create <span className="text-blue-500">Event</span>
         </h2>
 
-        {message.text && (
-          <div
-            className={`mb-6 p-4 rounded-lg text-center font-medium ${
-              message.type === "success"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {/* Event Name */}
           <input
             type="text"
             name="event_name"
@@ -108,7 +114,6 @@ export default function CreateEvent() {
             required
           />
 
-          {/* Event Description */}
           <textarea
             name="event_description"
             value={formData.event_description}
@@ -119,7 +124,6 @@ export default function CreateEvent() {
             required
           />
 
-          {/* Date & Time */}
           <div className="grid grid-cols-2 gap-4">
             <input
               type="date"
@@ -139,7 +143,6 @@ export default function CreateEvent() {
             />
           </div>
 
-          {/* Venue & Need Count */}
           <div className="grid grid-cols-2 gap-4">
             <input
               type="text"
@@ -163,7 +166,6 @@ export default function CreateEvent() {
             />
           </div>
 
-          {/* Map Picker */}
           <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
             <MapPicker onLocationSelect={setLocation} />
           </div>
@@ -173,7 +175,6 @@ export default function CreateEvent() {
             </p>
           )}
 
-          {/* Images */}
           <div>
             <label className="flex flex-col items-center justify-center w-40 h-32 bg-gray-100 rounded-xl cursor-pointer border-2 border-dashed border-gray-300 hover:border-blue-500 overflow-hidden">
               {previewImages.length > 0 ? (
@@ -188,9 +189,7 @@ export default function CreateEvent() {
                   ))}
                 </div>
               ) : (
-                <span className="text-gray-500 text-center">
-                  Upload Images
-                </span>
+                <span className="text-gray-500 text-center">Upload Images</span>
               )}
               <input
                 ref={fileInputRef}
@@ -207,7 +206,6 @@ export default function CreateEvent() {
             </p>
           </div>
 
-          {/* Submit Button */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

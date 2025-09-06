@@ -24,7 +24,7 @@ const DashboardLayout = () => {
   const sidebarWidth = isOpen ? 240 : 64;
 
   const renderSidebar = () => {
-    switch (user?.role) {
+    switch (user?.user_role) {
       case "admin":
         return <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} />;
       case "organizer":

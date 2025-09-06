@@ -1,13 +1,14 @@
+// src/pages/dashboard/organizer/event/UpdateEvent.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import MapPicker from "../../../Components/MapPicker";
 import { useEvent } from "../../../contexts/EventContext";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 export default function UpdateEvent() {
   const { event_id } = useParams();
-  const navigate = useNavigate();
   const { fetchEvent, updateEvent, loading } = useEvent();
+  const fileInputRef = useRef(null);
 
   const initialForm = {
     event_name: "",
@@ -22,60 +23,69 @@ export default function UpdateEvent() {
 
   const [formData, setFormData] = useState(initialForm);
   const [previewImages, setPreviewImages] = useState([]);
-  const [message, setMessage] = useState({ text: "", type: "" });
   const [location, setLocation] = useState(null);
-  const fileInputRef = useRef(null);
+  const [message, setMessage] = useState({ text: "", type: "" });
 
   // Fetch existing event data
   useEffect(() => {
-    const fetchEvent = async () => {
+    if (!event_id) return;
+
+    const fetchData = async () => {
       try {
-        const event = await fetchEvent(id);
+        const event = await fetchEvent(event_id);
         setFormData({
-          event_name: event.event_name || "",
-          event_description: event.event_description || "",
-          event_images: [], // files cannot prefill
-          event_date: event.event_date?.split("T")[0] || "",
-          event_time: event.event_time || "",
-          event_venue: event.event_venue || "",
-          event_geolocation: event.event_geolocation || "",
-          need_count: event.need_count || "",
+          event_name: event.event.event_name || "",
+          event_description: event.event.event_description || "",
+          event_images: [],
+          event_date: event.event.event_date?.split("T")[0] || "",
+          event_time: event.event.event_time || "",
+          event_venue: event.event.event_venue || "",
+          event_geolocation: event.event.event_geolocation || "",
+          need_count: event.event.need_count || "",
         });
 
-        if (event.event_geolocation) {
-          const geo = typeof event.event_geolocation === "string"
-            ? JSON.parse(event.event_geolocation)
-            : event.event_geolocation;
-          setLocation(geo);
+        // Parse saved geolocation string "lat,lng" into an object
+        let geoLocation = null;
+        if (event.event.event_geolocation) {
+          if (typeof event.event.event_geolocation === "string") {
+            const parts = event.event.event_geolocation.replace(/"/g, "").split(",");
+            if (parts.length === 2) {
+              geoLocation = { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) };
+            }
+          } else {
+            geoLocation = event.event.event_geolocation;
+          }
         }
+        setLocation(geoLocation);
 
-        if (event.event_images && event.event_images.length > 0) {
-          setPreviewImages(event.event_images); // URLs for preview
+        // Set image previews from server
+        if (event.event.event_images && event.event.event_images.length > 0) {
+          setPreviewImages(event.event.event_images);
         }
       } catch (err) {
         console.error(err);
         setMessage({ text: "❌ Failed to load event data.", type: "error" });
       }
     };
-    fetchEvent();
-  }, [event_id, fetchEvent]);
 
+    fetchData();
+  }, [event_id]);
+
+  // Handle form inputs
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
       setFormData({ ...formData, event_images: files });
-      const previews = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      );
+      const previews = Array.from(files).map((file) => URL.createObjectURL(file));
       setPreviewImages(previews);
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
+  // Submit updated event
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!location) {
       alert("Please select a location on the map.");
       return;
@@ -84,7 +94,7 @@ export default function UpdateEvent() {
     const data = new FormData();
     Object.entries({
       ...formData,
-      event_geolocation: JSON.stringify(location),
+      event_geolocation: `${location.lat},${location.lng}`, // store as "lat,lng"
     }).forEach(([key, value]) => {
       if (key === "event_images" && value.length > 0) {
         Array.from(value).forEach((file) => data.append("event_images", file));
@@ -97,9 +107,6 @@ export default function UpdateEvent() {
       setMessage({ text: "", type: "" });
       await updateEvent(event_id, data);
       setMessage({ text: "✅ Event updated successfully!", type: "success" });
-
-      // Optionally navigate back
-      // navigate("/events");
     } catch (err) {
       console.error(err);
       setMessage({ text: "❌ Failed to update event.", type: "error" });
@@ -131,7 +138,6 @@ export default function UpdateEvent() {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {/* Event Name */}
           <input
             type="text"
             name="event_name"
@@ -142,7 +148,6 @@ export default function UpdateEvent() {
             required
           />
 
-          {/* Event Description */}
           <textarea
             name="event_description"
             value={formData.event_description}
@@ -153,7 +158,6 @@ export default function UpdateEvent() {
             required
           />
 
-          {/* Date & Time */}
           <div className="grid grid-cols-2 gap-4">
             <input
               type="date"
@@ -173,7 +177,6 @@ export default function UpdateEvent() {
             />
           </div>
 
-          {/* Venue & Need Count */}
           <div className="grid grid-cols-2 gap-4">
             <input
               type="text"
@@ -184,7 +187,6 @@ export default function UpdateEvent() {
               className="p-4 rounded-xl bg-gray-100 border-2 border-gray-300 outline-none"
               required
             />
-
             <input
               type="number"
               name="need_count"
@@ -197,17 +199,16 @@ export default function UpdateEvent() {
             />
           </div>
 
-          {/* Map Picker */}
           <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
-            <MapPicker onLocationSelect={setLocation} initialLocation={location} />
+            <MapPicker
+              onLocationSelect={setLocation}
+              initialLocation={location || { lat: 6.9271, lng: 79.8612 }}
+            />
           </div>
-          {location && (
-            <p className="text-sm text-gray-600 mt-2">
-              📍 Selected: {location.lat}, {location.lng}
-            </p>
-          )}
+          <p className="text-sm text-gray-600 mt-2">
+            📍 Selected: {location?.lat ?? ""}, {location?.lng ?? ""}
+          </p>
 
-          {/* Images */}
           <div>
             <label className="flex flex-col items-center justify-center w-40 h-32 bg-gray-100 rounded-xl cursor-pointer border-2 border-dashed border-gray-300 hover:border-blue-500 overflow-hidden">
               {previewImages.length > 0 ? (
@@ -215,16 +216,18 @@ export default function UpdateEvent() {
                   {previewImages.map((src, i) => (
                     <img
                       key={i}
-                      src={src}
+                      src={
+                        typeof src === "string" && !src.startsWith("blob:")
+                          ? `${import.meta.env.VITE_SERVER_URL}${src}`
+                          : src
+                      }
                       alt={`preview-${i}`}
                       className="w-16 h-16 object-cover rounded"
                     />
                   ))}
                 </div>
               ) : (
-                <span className="text-gray-500 text-center">
-                  Upload Images
-                </span>
+                <span className="text-gray-500 text-center">Upload Images</span>
               )}
               <input
                 ref={fileInputRef}
@@ -241,7 +244,6 @@ export default function UpdateEvent() {
             </p>
           </div>
 
-          {/* Submit Button */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

@@ -3,7 +3,7 @@ import { OrgProvider } from "../contexts/OrgContext";
 
 
 import Dashboard from "../pages/organizer/Dashboard";
-import Profile from "../pages/organizer/Profile";
+import Profile from "../pages/Profile";
 
 import Events from "../pages/organizer/event/events"; 
 import EventCreate from "../pages/organizer/event/create";
@@ -21,7 +21,7 @@ export default function OrgDashboard() {
 
       <Route path="event/events" element={<Events />} />
       <Route path="event/create" element={<EventCreate />} />
-      <Route path="event/update/:event_id " element={<UpdateEvent />} />
+      <Route path="event/update/:event_id" element={<UpdateEvent />} />
 
       <Route path="org/view" element={<ViewOrg />} />
       <Route path="org/create" element={<OrgCreate />} />

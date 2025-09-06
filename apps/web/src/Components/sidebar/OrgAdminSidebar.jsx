@@ -20,9 +20,8 @@ const OrgAdminSidebar = ({ isOpen, setIsOpen }) => {
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard/organizer", icon: <FaTachometerAlt /> },
-    { name: "Our Events", path: "/dashboard/organizer/event/events", icon: <FaTasks /> },
-    { name: "Event Create", path: "/dashboard/organizer/event/create", icon: <FaCalendarAlt /> },
-    { name: "Event Update", path: "/dashboard/organizer/event/update", icon: <FaCalendarAlt /> },
+    { name: "Our Events", path: "/dashboard/organizer/event/events", icon: <FaTasks /> ,requireOrg: true },
+    { name: "Event Create", path: "/dashboard/organizer/event/create", icon: <FaCalendarAlt /> ,requireOrg: true },
     { name: "Organization", path: "/dashboard/organizer/org/view", icon: <FaTasks />, requireOrg: true },
     { name: "Organization Create", path: "/dashboard/organizer/org/create", icon: <FaCalendarAlt />, requireNoOrg: true },
     { name: "Organization Update", path: "/dashboard/organizer/org/update", icon: <FaCalendarAlt />, requireOrg: true },

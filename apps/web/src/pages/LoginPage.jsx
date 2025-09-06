@@ -48,7 +48,7 @@ const LoginPage = () => {
         confirmButtonColor: "#2563eb",
       });
 
-      switch (user.role) {
+      switch (user.user_role) {
         case "admin":
           navigate("/dashboard/admin");
           break;

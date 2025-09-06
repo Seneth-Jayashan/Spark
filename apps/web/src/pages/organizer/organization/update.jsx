@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useOrg } from "../../../contexts/OrgContext";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function UpdateOrganization() {
   const { currentOrg, fetchLoggedUserOrg, updateOrganization, loading: orgLoading } = useOrg();
@@ -21,7 +24,6 @@ export default function UpdateOrganization() {
   const [formData, setFormData] = useState(initialForm);
   const [logoPreview, setLogoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   // Populate form when currentOrg is loaded
   useEffect(() => {
@@ -80,17 +82,21 @@ export default function UpdateOrganization() {
 
     try {
       setLoading(true);
-      setMessage("");
       await updateOrganization(currentOrg.organization.org_id, data);
-      setMessage("✅ Organization updated successfully!");
+
+      Swal.fire({
+        icon: "success",
+        title: "Organization Updated!",
+        text: "Your organization details have been updated successfully.",
+        confirmButtonColor: "#2563eb", // Tailwind blue-600
+      });
     } catch (err) {
       console.error(err);
-      setMessage("❌ Error updating organization.");
+      toast.error("❌ Error updating organization.");
     } finally {
       setLoading(false);
     }
   };
-
 
   if (orgLoading || !formData)
     return <div className="p-6 text-gray-500 animate-pulse">Loading organization...</div>;
@@ -106,10 +112,6 @@ export default function UpdateOrganization() {
         <h2 className="text-3xl font-extrabold mb-8 text-center tracking-wide text-gray-900">
           Update <span className="text-blue-500">Organization</span>
         </h2>
-
-        {message && (
-          <div className="mb-6 p-4 rounded-lg bg-gray-100 text-center font-medium">{message}</div>
-        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Org Name */}

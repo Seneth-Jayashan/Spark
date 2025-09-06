@@ -1,36 +1,59 @@
-// src/components/MapPicker.jsx
-import React, { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import React, { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
-const MapPicker = ({ onLocationSelect }) => {
-  const mapRef = useRef(null); // Ref for map container
-  const leafletMapRef = useRef(null); // Ref for Leaflet map instance
-  const markerRef = useRef(null); // Ref for marker
+const MapPicker = ({ onLocationSelect, initialLocation }) => {
+  const mapRef = useRef(null);         // DOM container
+  const leafletMapRef = useRef(null);  // Leaflet instance
+  const markerRef = useRef(null);      // Marker instance
 
   useEffect(() => {
-    // Only initialize map once
-    if (!leafletMapRef.current) {
-      leafletMapRef.current = L.map(mapRef.current).setView([6.9271, 79.8612], 13);
+    const defaultLat = 6.9271;
+    const defaultLng = 79.8612;
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
+    if (!leafletMapRef.current && mapRef.current) {
+      // Initialize map
+      leafletMapRef.current = L.map(mapRef.current).setView(
+        [initialLocation?.lat ?? defaultLat, initialLocation?.lng ?? defaultLng],
+        13
+      );
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors",
       }).addTo(leafletMapRef.current);
 
-      leafletMapRef.current.on('click', (e) => {
+      // Only create marker if valid location
+      if (initialLocation?.lat && initialLocation?.lng) {
+        markerRef.current = L.marker([initialLocation.lat, initialLocation.lng], {
+          draggable: true,
+        }).addTo(leafletMapRef.current);
+
+        // Update location on drag
+        markerRef.current.on("dragend", (e) => {
+          const { lat, lng } = e.target.getLatLng();
+          onLocationSelect({ lat, lng });
+        });
+      }
+
+      // Map click to add/update marker
+      leafletMapRef.current.on("click", (e) => {
         const { lat, lng } = e.latlng;
 
-        // Remove old marker if exists
         if (markerRef.current) {
-          leafletMapRef.current.removeLayer(markerRef.current);
+          markerRef.current.setLatLng([lat, lng]);
+        } else {
+          markerRef.current = L.marker([lat, lng], { draggable: true }).addTo(leafletMapRef.current);
+          markerRef.current.on("dragend", (e) => {
+            const { lat, lng } = e.target.getLatLng();
+            onLocationSelect({ lat, lng });
+          });
         }
 
-        markerRef.current = L.marker([lat, lng]).addTo(leafletMapRef.current);
-        onLocationSelect(`${lat},${lng}`);
+        onLocationSelect({ lat, lng });
       });
     }
 
-    // Cleanup on unmount
+    // Cleanup
     return () => {
       if (leafletMapRef.current) {
         leafletMapRef.current.off();
@@ -39,9 +62,9 @@ const MapPicker = ({ onLocationSelect }) => {
         markerRef.current = null;
       }
     };
-  }, [onLocationSelect]);
+  }, [initialLocation, onLocationSelect]);
 
-  return <div ref={mapRef} style={{ height: '300px', width: '100%', marginBottom: '1rem' }} />;
+  return <div ref={mapRef} style={{ height: "300px", width: "100%", marginBottom: "1rem" }} />;
 };
 
 export default MapPicker;

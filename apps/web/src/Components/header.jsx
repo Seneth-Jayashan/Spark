@@ -16,7 +16,7 @@ function Header() {
       {/* Desktop Navigation */}
       <nav className="hidden md:flex space-x-8 text-blue-700 font-medium">
         <a href="/" className="hover:text-[#FFB238] transition">Home</a>
-        <a href="/pricing" className="hover:text-[#FFB238] transition">Pricing</a>
+        <a href="/events" className="hover:text-[#FFB238] transition">Events</a>
         <a href="/about" className="hover:text-[#FFB238] transition">About Us</a>
         <a href="/contact" className="hover:text-[#FFB238] transition">Contact</a>
       </nav>
@@ -53,7 +53,7 @@ function Header() {
       {isMobileMenuOpen && (
         <div className="absolute top-full left-0 w-full bg-white border-t shadow-md flex flex-col items-start px-6 py-4 space-y-3 z-50 md:hidden">
           <a href="/" className="text-blue-700 hover:text-orange-400 transition">Home</a>
-          <a href="/pricing" className="text-blue-700 hover:text-orange-400 transition">Pricing</a>
+          <a href="/events" className="text-blue-700 hover:text-orange-400 transition">Events</a>
           <a href="/about" className="text-blue-700 hover:text-orange-400 transition">About Us</a>
           <a href="/contact" className="text-blue-700 hover:text-orange-400 transition">Contact</a>
           <button className="bg-orange-400 text-white rounded-full px-4 py-2 shadow-md hover:bg-orange-500 transition mt-2 w-full">

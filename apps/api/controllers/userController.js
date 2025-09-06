@@ -121,12 +121,13 @@ exports.forgotPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const token = jwt.sign({ email }, process.env.SECRET_KEY, { expiresIn: "1h" });
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     await sendResetPassword(email, token);
 
     res.status(200).json({ message: "Reset link sent successfully" });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Error sending reset link", error });
   }
 };
@@ -136,7 +137,7 @@ exports.forgotPassword = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findOne({ user_email: decoded.email });
     if (!user) return res.status(400).json({ message: "Invalid Token" });
@@ -157,7 +158,7 @@ exports.resetPassword = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+console.log(email, password);
     // Check if user exists
     const user = await User.findOne({ user_email: email });
     if (!user) {
@@ -181,6 +182,13 @@ exports.login = async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
+    const userWithoutPassword = user.toObject();
+    delete userWithoutPassword.user_password;
+    delete userWithoutPassword._id;
+    delete userWithoutPassword.__v;
+    delete userWithoutPassword.user_interested;
+
+
     // Send refreshToken as HttpOnly cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -193,13 +201,7 @@ exports.login = async (req, res) => {
       message: "Login successful",
       accessToken,
       refreshToken,
-      user: {
-        id: user._id,
-        firstName: user.user_first_name,
-        lastName: user.user_last_name,
-        role: user.user_role,
-        verified: user.user_verified,
-      },
+      user: userWithoutPassword,
     });
   } catch (err) {
     console.error("Login Error:", err.message);
@@ -251,15 +253,7 @@ exports.authentication = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({
-      user: {
-        id: user.user_id,
-        email: user.user_email,
-        role: user.user_role,
-        firstName: user.user_first_name,
-        lastName: user.user_last_name,
-      },
-    });
+    res.status(200).json({user});
   } catch (error) {
     console.error("Authentication error:", error);
     res.status(500).json({ message: "Internal Server Error" });

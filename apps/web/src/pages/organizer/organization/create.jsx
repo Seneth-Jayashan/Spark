@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import api from "../../../api/axios";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function OrganizationCreate() {
   const [formData, setFormData] = useState({
@@ -30,7 +33,6 @@ export default function OrganizationCreate() {
 
   const [logoPreview, setLogoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value, files, dataset } = e.target;
@@ -56,7 +58,7 @@ export default function OrganizationCreate() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.org_name || !formData.org_description || !formData.org_logo) {
-      setMessage("Required fields are missing!");
+      toast.error("⚠️ Required fields are missing!");
       return;
     }
 
@@ -71,11 +73,21 @@ export default function OrganizationCreate() {
 
     try {
       setLoading(true);
-      setMessage("");
       await api.post("/organization/create", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setMessage("✅ Organization created successfully!");
+
+      Swal.fire({
+        icon: "success",
+        title: "Organization Created!",
+        text: "Your organization has been created successfully.",
+        confirmButtonColor: "#2563eb", // Tailwind blue-600
+      }).then(() => {
+        // 👉 Redirect after success
+        window.location.href = "/dashboard/organizer/org/view";
+      });
+
+      // Reset form
       setFormData({
         org_name: "",
         org_description: "",
@@ -91,7 +103,7 @@ export default function OrganizationCreate() {
       setLogoPreview(null);
     } catch (err) {
       console.error(err);
-      setMessage("❌ Error creating organization.");
+      toast.error("❌ Error creating organization.");
     } finally {
       setLoading(false);
     }
@@ -108,12 +120,6 @@ export default function OrganizationCreate() {
         <h2 className="text-3xl font-extrabold mb-8 text-center tracking-wide text-gray-900">
           Create <span className="text-blue-500">Organization</span>
         </h2>
-
-        {message && (
-          <div className="mb-6 p-4 rounded-lg bg-gray-100 text-center font-medium">
-            {message}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Org Name */}
