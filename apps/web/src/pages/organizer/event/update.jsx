@@ -33,6 +33,7 @@ export default function UpdateEvent() {
     const fetchData = async () => {
       try {
         const event = await fetchEvent(event_id);
+
         setFormData({
           event_name: event.event.event_name || "",
           event_description: event.event.event_description || "",
@@ -44,16 +45,27 @@ export default function UpdateEvent() {
           need_count: event.event.need_count || "",
         });
 
-        // Parse saved geolocation string "lat,lng" into an object
+        // ✅ Parse and validate geolocation
         let geoLocation = null;
         if (event.event.event_geolocation) {
           if (typeof event.event.event_geolocation === "string") {
             const parts = event.event.event_geolocation.replace(/"/g, "").split(",");
             if (parts.length === 2) {
-              geoLocation = { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) };
+              const lat = parseFloat(parts[0]);
+              const lng = parseFloat(parts[1]);
+              if (!isNaN(lat) && !isNaN(lng)) {
+                geoLocation = { lat, lng };
+              }
             }
-          } else {
-            geoLocation = event.event.event_geolocation;
+          } else if (
+            event.event.event_geolocation.lat &&
+            event.event.event_geolocation.lng
+          ) {
+            const lat = parseFloat(event.event.event_geolocation.lat);
+            const lng = parseFloat(event.event.event_geolocation.lng);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              geoLocation = { lat, lng };
+            }
           }
         }
         setLocation(geoLocation);
@@ -86,8 +98,8 @@ export default function UpdateEvent() {
   // Submit updated event
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!location) {
-      alert("Please select a location on the map.");
+    if (!location || isNaN(location.lat) || isNaN(location.lng)) {
+      alert("Please select a valid location on the map.");
       return;
     }
 
@@ -199,10 +211,15 @@ export default function UpdateEvent() {
             />
           </div>
 
+          {/* ✅ Safe fallback for MapPicker */}
           <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
             <MapPicker
               onLocationSelect={setLocation}
-              initialLocation={location || { lat: 6.9271, lng: 79.8612 }}
+              initialLocation={
+                location && !isNaN(location.lat) && !isNaN(location.lng)
+                  ? location
+                  : { lat: 6.9271, lng: 79.8612 } // fallback: Colombo
+              }
             />
           </div>
           <p className="text-sm text-gray-600 mt-2">

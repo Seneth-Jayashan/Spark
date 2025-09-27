@@ -6,19 +6,16 @@ import { useEvent } from "../../../contexts/EventContext";
 
 export default function Events() {
   const { currentOrg } = useOrg();
-  const { fetchEvents } = useEvent();
+  const { fetchEvents, deleteEvent } = useEvent(); // ✅ ensure deleteEvent is in EventContext
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
 
   useEffect(() => {
     const getAllEvents = async () => {
       if (!currentOrg?.organization?.org_id) return;
       try {
         const allEvents = await fetchEvents();
-
-        // normalize response
         const eventsArray = Array.isArray(allEvents)
           ? allEvents
           : allEvents?.events || [];
@@ -36,6 +33,22 @@ export default function Events() {
     };
     getAllEvents();
   }, [currentOrg]);
+
+  const handleDelete = async (event_id) => {
+  if (!window.confirm("Are you sure you want to delete this event?")) return;
+
+  try {
+    await deleteEvent(event_id);
+    setEvents((prev) => prev.filter((e) => e.event_id !== event_id));
+
+    {/*// 👇 Redirect somewhere after deletion
+    navigate("/dashboard/organizer/event/events"); 
+    window.location.reload(); */  }  
+  } catch (err) {
+    console.error("Failed to delete event:", err);
+    alert("Error deleting event. Try again.");
+  }
+};
 
 
   if (loading) {
@@ -116,12 +129,16 @@ export default function Events() {
                 {/* Actions */}
                 <div className="mt-6 flex gap-3">
                   <button
-                    onClick={() => navigate(`../event/update/${event.event_id}`)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+  onClick={() => navigate(`/dashboard/organizer/event/update/${event.event_id}`)}
+  className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+>
+  Edit
+</button>
+
+                  <button
+                    onClick={() => handleDelete(event.event_id)}
+                    className="px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
                   >
-                    Edit
-                  </button>
-                  <button className="px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">
                     Delete
                   </button>
                 </div>
