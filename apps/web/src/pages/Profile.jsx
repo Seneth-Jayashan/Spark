@@ -31,7 +31,7 @@ export default function Profile() {
         user_address: user.user_address || "",
         user_profile_picture: null,
       });
-      setLogoPreview(user.user_profile_picture ? `${import.meta.env.VITE_SERVER_URL}/uploads/${user.user_profile_picture}` : null);
+      setLogoPreview(user.user_profile_picture ? `${import.meta.env.VITE_SERVER_URL}${user.user_profile_picture}` : null);
     }
   }, [user]);
 

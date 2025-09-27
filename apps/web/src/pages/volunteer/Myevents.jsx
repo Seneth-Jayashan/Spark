@@ -44,7 +44,7 @@ export default function Myevents() {
             {/* Event Image */}
             {event.event_images?.length > 0 && (
               <img
-                src={event.event_images[0]}
+                src={`${import.meta.env.VITE_SERVER_URL}${event.event_images[0]}`}
                 alt={event.event_name}
                 className="w-full h-40 object-cover"
               />
