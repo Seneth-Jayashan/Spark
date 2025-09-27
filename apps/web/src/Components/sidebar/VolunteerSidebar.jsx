@@ -15,7 +15,7 @@ const VolunteerSidebar = ({ isOpen, setIsOpen }) => {
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard/volunteer", icon: <FaTachometerAlt /> },
-    { name: "My Tasks", path: "/dashboard/volunteer/tasks", icon: <FaTasks /> },
+    { name: "My Events", path: "/dashboard/volunteer/myevents", icon: <FaTasks /> },
     { name: "Events", path: "/dashboard/volunteer/events", icon: <FaCalendarAlt /> },
     { name: "Profile", path: "/dashboard/volunteer/profile", icon: <FaUser /> },
   ];
