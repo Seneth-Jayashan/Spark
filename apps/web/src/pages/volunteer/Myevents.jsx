@@ -1,101 +1,49 @@
-// frontend/src/pages/MyEvents.js
+// src/pages/Myevents.jsx
 import React, { useEffect, useState } from "react";
-import {
-  Container,
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  Typography,
-  CircularProgress,
-  Alert,
-  Box,
-} from "@mui/material";
-import api from "../../api/axios"; // your axios instance
+import { useAuth } from "../../contexts/AuthContext";
+import api from "../../api/axios";
 
-
-const MyEvents = ({ userId }) => {
-  const [events, setEvents] = useState([]);
+export default function Myevents() {
+  const { user } = useAuth();
+  const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-  const fetchEvents = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const userId = user?.user_id;   // or user._id depending on your schema
+    if (!user?._id) return; // wait until user is available
 
-      if (!userId) {
-        setError("User not logged in");
+    const fetchEvent = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(`/event/member/${user.user_id}`);
+        setEvent(res.data.event);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch events");
+      } finally {
         setLoading(false);
-        return;
       }
+    };
 
-      const res = await api.get(`/events/member/${userId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+    fetchEvent();
+  }, [user]);
 
-      setEvents(res.data.events || (res.data.event ? [res.data.event] : []));
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to load events");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchEvents();
-}, []);
-
+  if (loading) return <div className="p-4">Loading your events...</div>;
+  if (error) return <div className="p-4 text-red-500">{error}</div>;
+  if (!event) return <div className="p-4">You haven’t registered for any events yet.</div>;
 
   return (
-    <>
-      <Container sx={{ mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          My Registered Events
-        </Typography>
-
-        {loading ? (
-          <Box display="flex" justifyContent="center">
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="error">{error}</Alert>
-        ) : events.length === 0 ? (
-          <Alert severity="info">
-            You haven't registered for any events yet.
-          </Alert>
-        ) : (
-          <Grid container spacing={3}>
-            {events.map((event) => (
-              <Grid item xs={12} sm={6} md={4} key={event.event_id}>
-                <Card>
-                  {event.event_images?.length > 0 && (
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={event.event_images[0]}
-                      alt={event.event_name}
-                    />
-                  )}
-                  <CardContent>
-                    <Typography variant="h6">{event.event_name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {event.event_description}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      📅 {new Date(event.event_date).toLocaleDateString()}{" "}
-                      <br />⏰ {event.event_time} <br />
-                      📍 {event.event_venue}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Container>
-    </>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">My Registered Event</h2>
+      <div className="border p-4 rounded shadow bg-white">
+        <h3 className="text-xl font-semibold">{event.title}</h3>
+        <p className="text-gray-600">{event.description}</p>
+        <p className="mt-2">
+          📅 <strong>Date:</strong> {new Date(event.date).toLocaleDateString()}
+        </p>
+        <p>
+          📍 <strong>Location:</strong> {event.location}
+        </p>
+      </div>
+    </div>
   );
-};
-
-export default MyEvents;
+}
