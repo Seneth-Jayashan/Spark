@@ -42,7 +42,7 @@ router.post('/:event_id/add-member', eventController.addMember);
 router.get('/:event_id/members', eventController.getMembersByEventId);
 
 // Get event from user ID
-router.get('/member/:user_id', eventController.getEventByUserId);
+router.get('/member/:user_id', eventController.getEventsByUserId);
 
 
 // Remove member from an event

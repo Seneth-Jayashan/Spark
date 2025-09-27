@@ -217,27 +217,35 @@ exports.getMembersByEventId = async(req,res) => {
     }
 }
 
-exports.getEventByUserId = async (req, res) => {
-    try {
-        const { user_id } = req.params;
+exports.getEventsByUserId = async (req, res) => {
+  try {
+    const { user_id } = req.params;
 
-        const userMember = await Member.findOne({user_id});
+    // Find all membership records for the user
+    const userMembers = await Member.find({ user_id });
 
-        if(!userMember){
-            return res.status(404).json({ message: "User isn't associate with any event" });
-        }
-
-        const event = await Event.findOne({ event_id:userMember.event_id });
-
-        if (!event) {
-            return res.status(404).json({ message: 'Event not found' });
-        }
-
-        res.status(200).json({ message: 'Event found', event });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!userMembers || userMembers.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "User isn't associated with any event" });
     }
+
+    // Extract all event IDs from the member records
+    const eventIds = userMembers.map((member) => member.event_id);
+
+    // Find all events where event_id is in that list
+    const events = await Event.find({ event_id: { $in: eventIds } });
+
+    if (!events || events.length === 0) {
+      return res.status(404).json({ message: "No events found" });
+    }
+
+    res.status(200).json({ message: "Events found", events });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 
 exports.removeMember = async(req,res) => {
     try{
