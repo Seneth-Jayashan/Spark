@@ -130,7 +130,10 @@ export default function Events() {
                 </p>
 
                 <button
-                  onClick={() => handleRegister(event.event_id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent navigating to event details
+                    handleRegister(event.event_id);
+                  }}
                   className="mt-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
                 >
                   Register
