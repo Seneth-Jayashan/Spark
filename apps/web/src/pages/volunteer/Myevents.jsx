@@ -35,13 +35,13 @@ export default function Myevents() {
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">My Registered Event</h2>
       <div className="border p-4 rounded shadow bg-white">
-        <h3 className="text-xl font-semibold">{event.title}</h3>
-        <p className="text-gray-600">{event.description}</p>
+        <h3 className="text-xl font-semibold">{event.event_name}</h3>
+        <p className="text-gray-600">{event.event_description}</p>
         <p className="mt-2">
-          📅 <strong>Date:</strong> {new Date(event.date).toLocaleDateString()}
+          📅 <strong>Date:</strong> {new Date(event.event_date).toLocaleDateString()}
         </p>
         <p>
-          📍 <strong>Location:</strong> {event.location}
+          📍 <strong>Location:</strong> {event.event_venue}
         </p>
       </div>
     </div>
