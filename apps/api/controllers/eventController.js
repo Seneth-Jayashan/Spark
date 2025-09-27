@@ -158,27 +158,30 @@ exports.deleteEvent = async (req, res) => {
     }
 };
 
-exports.addMember = async (req,res) => {
-    try{
-        const {event_id} = req.params;
-        const {user_id} = req.body;
+exports.addMember = async (req, res) => {
+    try {
+        const { event_id } = req.params;
+        const { user_id } = req.body;
 
-        const event = await Event.findOne({event_id});
-
-        if(!event){
+        // Check if event exists
+        const event = await Event.findOne({ event_id });
+        if (!event) {
             return res.status(404).json({ message: 'Event not found' });
         }
 
-        const member = await Member.findOne({user_id});
-        if(member){
-            return res.status(403).json({ message: 'User is already a member' });
-        }
+        // ❌ REMOVE this global check (prevents multiple events)
+        // const member = await Member.findOne({ user_id });
+        // if (member) {
+        //     return res.status(403).json({ message: 'User is already a member' });
+        // }
 
+        // ✅ Only check membership for this event
         const eventMember = await Member.findOne({ user_id, event_id });
         if (eventMember) {
             return res.status(403).json({ message: 'User is already a member of this event' });
         }
 
+        // Add new member to event
         const newMember = new Member({
             user_id,
             event_id
@@ -186,11 +189,11 @@ exports.addMember = async (req,res) => {
 
         await newMember.save();
 
-        res.status(200).json({ message: 'Member Added successfully'});
-    }catch(error){
+        res.status(200).json({ message: 'Member added successfully', member: newMember });
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
+};
 
 exports.getMembersByEventId = async(req,res) => {
     try{

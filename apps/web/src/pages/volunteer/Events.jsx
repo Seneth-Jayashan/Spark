@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useEvent } from "../../contexts/EventContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Events() {
   const { events, fetchPublicEvents, loading, error, addMember } = useEvent();
@@ -10,6 +11,7 @@ export default function Events() {
   const [locationFilter, setLocationFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [locations, setLocations] = useState([]);
+  const navigate = useNavigate();
 
   // Fetch events on mount
   useEffect(() => {
@@ -29,9 +31,7 @@ export default function Events() {
     let filtered = events;
 
     if (locationFilter) {
-      filtered = filtered.filter(
-        (e) => e.event_venue === locationFilter
-      );
+      filtered = filtered.filter((e) => e.event_venue === locationFilter);
     }
 
     if (dateFilter) {
@@ -102,12 +102,15 @@ export default function Events() {
           filteredEvents.map((event) => (
             <div
               key={event.event_id}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden flex flex-col"
+              onClick={() => navigate(`/event/${event.event_id}`)}
+              className="cursor-pointer bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden flex flex-col"
             >
               {/* Image */}
               {event.event_images && event.event_images.length > 0 && (
                 <img
-                  src={`${import.meta.env.VITE_SERVER_URL}${event.event_images[0]}`}
+                  src={`${import.meta.env.VITE_SERVER_URL}${
+                    event.event_images[0]
+                  }`}
                   alt={event.event_name}
                   className="h-48 w-full object-cover"
                 />
@@ -115,15 +118,22 @@ export default function Events() {
 
               <div className="p-4 flex flex-col flex-1">
                 <h2 className="text-xl font-bold mb-2">{event.event_name}</h2>
-                <p className="text-gray-700 mb-2 flex-1">{event.event_description}</p>
+                <p className="text-gray-700 mb-2 flex-1">
+                  {event.event_description}
+                </p>
 
                 <p className="text-sm text-gray-500 mb-1">
                   📅 {event.event_date?.split("T")[0]} at {event.event_time}
                 </p>
-                <p className="text-sm text-gray-500 mb-4">📍 {event.event_venue}</p>
+                <p className="text-sm text-gray-500 mb-4">
+                  📍 {event.event_venue}
+                </p>
 
                 <button
-                  onClick={() => handleRegister(event.event_id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent navigating to event details
+                    handleRegister(event.event_id);
+                  }}
                   className="mt-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
                 >
                   Register
