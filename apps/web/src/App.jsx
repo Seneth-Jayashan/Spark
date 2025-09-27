@@ -22,6 +22,8 @@ import OrgDashboard from "./routes/OrgDashboard";
 
 import MainLayout from "./layouts/MainLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
+import EventDetails from "./pages/viewevent";
+
 
 
 
@@ -46,6 +48,9 @@ function App() {
         <Route path="/events" element={<Events />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+        <Route path="/event/:event_id" element={<EventDetails />} />
+
       </Route>
 
       { <Route element={<DashboardLayout />}>
