@@ -27,30 +27,31 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
       className="fixed top-0 left-0 h-full bg-gray-900 text-gray-100 flex flex-col shadow-lg z-50"
     >
       {/* Logo & Toggle */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
-        <div className="flex items-center gap-2 flex-col">
-          <span
-            className={`${
-              isOpen ? "w-32" : "w-8"
-            } overflow-hidden transition-all duration-300`}
-          >
-            <img src="../Logo.png" alt="Logo" className="w-full h-auto" />
-          </span>
-          {isOpen && (
-            <span className="font-semibold md:text-2xl text-lg">
-              SPARK - SuperAdmin
-            </span>
-          )}
-        </div>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`p-2 rounded transition ${
-            !isOpen ? "bg-gray-900" : "hover:bg-gray-800"
-          }`}
-        >
-          <FaBars />
-        </button>
-      </div>
+<div className="flex items-center justify-between p-4 border-b border-gray-700">
+  <NavLink to="/" className="flex items-center gap-2 flex-col">
+    <span
+      className={`${
+        isOpen ? "w-32" : "w-8"
+      } overflow-hidden transition-all duration-300`}
+    >
+      <img src="../Logo.png" alt="Logo" className="w-full h-auto" />
+    </span>
+    {isOpen && (
+      <span className="font-semibold md:text-2xl text-lg">
+        SPARK - SuperAdmin
+      </span>
+    )}
+  </NavLink>
+  <button
+    onClick={() => setIsOpen(!isOpen)}
+    className={`p-2 rounded transition ${
+      !isOpen ? "bg-gray-900" : "hover:bg-gray-800"
+    }`}
+  >
+    <FaBars />
+  </button>
+</div>
+
 
       {/* Menu */}
       <nav className="flex-1 mt-4">

@@ -56,16 +56,20 @@ function Header() {
         {user ? (
           <>
             {/* ✅ Show profile pic + name */}
-            <div className="flex items-center gap-2">
-              <img
-                src={`/uploads/${user.user_profile_picture}`} // adjust path if needed
-                alt="Profile"
-                className="w-8 h-8 rounded-full border"
-              />
-              <span className="hidden md:inline font-medium">
-                {user.user_first_name}
-              </span>
-            </div>
+<div className="flex items-center gap-2">
+  <img
+    src={`/uploads/${user.user_profile_picture}`} // adjust path if needed
+    alt="Profile"
+    className="w-8 h-8 rounded-full border cursor-pointer"
+    onClick={() => navigation(getDashboardLink())} // navigate on click
+  />
+  <span
+    className="hidden md:inline font-medium cursor-pointer"
+    onClick={() => navigation(getDashboardLink())} // navigate on click
+  >
+    {user.user_first_name}
+  </span>
+</div>
             <button
               className="w-full h-wrap rounded-full bg-white/50 border-2 py-2 px-4 whitespace-nowrap"
               onClick={handleLogout}

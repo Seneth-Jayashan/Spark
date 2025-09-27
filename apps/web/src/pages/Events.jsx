@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useEvent } from "../contexts/EventContext";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Events() {
   const { events, fetchPublicEvents, loading, error, addMember } = useEvent();
@@ -10,6 +11,7 @@ export default function Events() {
   const [locationFilter, setLocationFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [locations, setLocations] = useState([]);
+  const navigate = useNavigate();
 
   // Fetch events on mount
   useEffect(() => {
@@ -101,9 +103,10 @@ export default function Events() {
         {Array.isArray(filteredEvents) && filteredEvents.length > 0 ? (
           filteredEvents.map((event) => (
             <div
-              key={event.event_id}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden flex flex-col"
-            >
+  key={event.event_id}
+  onClick={() => navigate(`/event/${event.event_id}`)}
+  className="cursor-pointer bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden flex flex-col"
+>
               {/* Image */}
               {event.event_images && event.event_images.length > 0 && (
                 <img
