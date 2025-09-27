@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useLocation,useNavigate  } from "react-router-dom";
 import { 
   FaTachometerAlt, 
@@ -12,8 +12,14 @@ import { useOrg } from "../../contexts/OrgContext";
 
 const OrgAdminSidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
-  const { currentOrg, loading } = useOrg();
+  const { currentOrg, loading, fetchLoggedUserOrg  } = useOrg();
   const navigate = useNavigate();
+
+  useEffect(() => {
+  if (!currentOrg && !loading) {
+    fetchLoggedUserOrg();
+  }
+}, []);
 
   // Only decide if user has org after loading completes
   const hasOrg = !loading && !!currentOrg;

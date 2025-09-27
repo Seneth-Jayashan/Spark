@@ -8,7 +8,7 @@ export const useOrg = () => useContext(OrgContext);
 export const OrgProvider = ({ children }) => {
   const [organizations, setOrganizations] = useState([]); // all orgs
   const [currentOrg, setCurrentOrg] = useState(null);      // logged-in user's org
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // Set token once on mount
