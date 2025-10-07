@@ -34,7 +34,7 @@ export default function ViewEvent() {
       try {
         // Fetch event details
         const data = await fetchEvent(id);
-        const ev = data?.event || data; // fallback if API returns event directly
+        const ev = data?.event || data; 
         setEvent(ev);
 
         // Parse geolocation
@@ -60,7 +60,7 @@ export default function ViewEvent() {
 
         // Fetch volunteers
         const members = await getMembers(id);
-        setVolunteers(members || []);
+        setVolunteers(members?.members || []);
       } catch (error) {
         console.error("Error fetching event or members:", error);
       }
