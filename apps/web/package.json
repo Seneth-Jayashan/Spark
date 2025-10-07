@@ -16,6 +16,7 @@
     "@mui/material": "^7.3.2",
     "@react-google-maps/api": "^2.20.7",
     "axios": "^1.11.0",
+    "emoji-picker-react": "^4.14.0",
     "framer-motion": "^12.23.9",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
@@ -27,6 +28,7 @@
     "react-router-dom": "^7.7.1",
     "react-toastify": "^11.0.5",
     "react-tooltip": "^5.29.1",
+    "socket.io-client": "^4.8.1",
     "sweetalert2": "^11.22.2"
   },
   "devDependencies": {

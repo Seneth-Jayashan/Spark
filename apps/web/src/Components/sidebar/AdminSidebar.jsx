@@ -9,6 +9,7 @@ import {
   FaBars,
   FaSignOutAlt,
 } from "react-icons/fa";
+import Logo from '../../assets/images/Logo.png';
 
 const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
         isOpen ? "w-32" : "w-8"
       } overflow-hidden transition-all duration-300`}
     >
-      <img src="../Logo.png" alt="Logo" className="w-full h-auto" />
+      <img src={Logo} alt="Logo" className="w-full h-auto" />
     </span>
     {isOpen && (
       <span className="font-semibold md:text-2xl text-lg">

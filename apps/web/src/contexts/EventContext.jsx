@@ -46,7 +46,8 @@ export const EventProvider = ({ children }) => {
       setLoading(true);
       setError("");
       const res = await api.get(`/event/${event_id}`);
-      setCurrentEvent(res.data);
+      const evt = res.data?.event || res.data;
+      setCurrentEvent(evt);
       return res.data;
     } catch (err) {
       console.error(err);
