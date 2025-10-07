@@ -153,6 +153,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+    // ---- Get user by ID ----
+  const getUser = async (id) => {
+    try {
+      const res = await api.post(`/auth/user?id=${id}`);
+      console.log('vol:',res.data);
+      return res.data;
+    } catch (err) {
+      console.error("Fetch user failed", err);
+      return null;
+    }
+  };
+
   // ---- INIT ----
   useEffect(() => {
     if (!refreshCalled.current) {
@@ -179,6 +191,7 @@ export const AuthProvider = ({ children }) => {
         refreshToken,
         forgotPassword,  // ✅
         resetPassword,   // ✅
+        getUser,
       }}
     >
       {children}

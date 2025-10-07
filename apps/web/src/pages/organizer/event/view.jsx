@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, MapPin, Users } from "lucide-react";
 import { useEvent } from "../../../contexts/EventContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -21,11 +22,15 @@ L.Icon.Default.mergeOptions({
 
 export default function ViewEvent() {
   const { id } = useParams();
+  const { getUser } = useAuth();
   const { fetchEvent, getMembers, loading } = useEvent();
   const [event, setEvent] = useState(null);
   const [volunteers, setVolunteers] = useState([]);
   const [activeTab, setActiveTab] = useState("details");
   const [location, setLocation] = useState(null);
+  const [volunteerDetails, setVolunteerDetails] = useState([]);
+  const [loadingVolunteers, setLoadingVolunteers] = useState(false);
+
 
   useEffect(() => {
     if (!id) return;
@@ -60,7 +65,7 @@ export default function ViewEvent() {
 
         // Fetch volunteers
         const members = await getMembers(id);
-        setVolunteers(members || []);
+        setVolunteers(members.members || []);
       } catch (error) {
         console.error("Error fetching event or members:", error);
       }
@@ -68,6 +73,25 @@ export default function ViewEvent() {
 
     fetchData();
   }, [id]);
+
+
+
+  useEffect(() => {
+  async function loadVolunteerDetails() {
+    if (volunteers.length === 0) return;
+    setLoadingVolunteers(true);
+
+    const details = await Promise.all(
+      volunteers.map((v) => getUser(v.user_id))
+    );
+
+    setVolunteerDetails(details.filter(Boolean)); // remove nulls
+    setLoadingVolunteers(false);
+  }
+
+  loadVolunteerDetails();
+}, [volunteers]);
+
 
   if (loading)
     return (
@@ -252,17 +276,21 @@ export default function ViewEvent() {
           {activeTab === "volunteers" && (
             <div>
               <h2 className="text-xl font-semibold text-blue-600 mb-4">Volunteers</h2>
-              {volunteers.length > 0 ? (
+
+              {loadingVolunteers ? (
+                <p className="text-gray-500">Loading volunteer details...</p>
+              ) : volunteerDetails.length > 0 ? (
                 <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {volunteers.map((v) => (
+                  {volunteerDetails.map((v) => (
                     <motion.li
                       key={v.user_id}
                       whileHover={{ scale: 1.02 }}
                       transition={{ duration: 0.2 }}
                       className="bg-gray-100 p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md"
                     >
-                      <p className="font-bold">{v.user_name}</p>
-                      <p className="text-sm text-gray-600">{v.email}</p>
+                      <p className="font-bold">{v.user_first_name} {v.user_last_name}</p>
+                      <p className="text-sm text-gray-600">{v.user_email}</p>
+                      <p className="text-sm text-gray-700">{v.user_phone_number}</p> {/* example extra info */}
                     </motion.li>
                   ))}
                 </ul>
@@ -271,6 +299,7 @@ export default function ViewEvent() {
               )}
             </div>
           )}
+
 
           {/* Analytics Tab */}
           {activeTab === "analytics" && (
