@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { CalendarDays, MapPin, Users } from "lucide-react";
 import { useEvent } from "../../../contexts/EventContext";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
 export default function ViewEvent() {
   const { id } = useParams();
@@ -12,20 +15,27 @@ export default function ViewEvent() {
   const [activeTab, setActiveTab] = useState("details");
   const { fetchEvent, loading } = useEvent();
 
+  // Fix marker icon issue for Leaflet
+  const defaultIcon = L.icon({
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  });
+  L.Marker.prototype.options.icon = defaultIcon;
+
   useEffect(() => {
-      if (!id) return;
+    if (!id) return;
 
-      const fetchData = async () => {
-        try {
-          const event = await fetchEvent(id);
-          console.log('event:', event?.event);
-          setEvent(event?.event);
-        } catch (error) {
-          console.error("Error fetching event:", error);
-        }
-      };
+    const fetchData = async () => {
+      try {
+        const event = await fetchEvent(id);
+        console.log("event:", event?.event);
+        setEvent(event?.event);
+      } catch (error) {
+        console.error("Error fetching event:", error);
+      }
+    };
 
-      fetchData();
+    fetchData();
   }, [id]);
 
   if (loading) {
@@ -42,6 +52,22 @@ export default function ViewEvent() {
         Event not found or you are not authorized.
       </div>
     );
+  }
+
+  // ✅ Parse location
+  let location = null;
+  if (event.event_geolocation) {
+    if (typeof event.event_geolocation === "string") {
+      const [lat, lng] = event.event_geolocation.split(",").map((v) => parseFloat(v));
+      if (!isNaN(lat) && !isNaN(lng)) {
+        location = { lat, lng };
+      }
+    } else if (event.event_geolocation.lat && event.event_geolocation.lng) {
+      location = {
+        lat: parseFloat(event.event_geolocation.lat),
+        lng: parseFloat(event.event_geolocation.lng),
+      };
+    }
   }
 
   return (
@@ -150,10 +176,39 @@ export default function ViewEvent() {
                       at {event.event_time || "N/A"}
                     </span>
                   </p>
-                  <p>
-                    <span className="font-medium text-gray-500">Geolocation: </span>
-                    {event.event_geolocation || "N/A"}
-                  </p>
+
+                  {/* ✅ Show Map and Coordinates */}
+                  <div className="mt-4">
+                    <span className="font-medium text-gray-500">
+                      Geolocation:
+                    </span>{" "}
+                    {location
+                      ? `${location.lat}, ${location.lng}`
+                      : "N/A"}
+
+                    {location && (
+                      <div className="mt-3 border-2 border-gray-200 rounded-xl overflow-hidden">
+                        <MapContainer
+                          center={location}
+                          zoom={13}
+                          style={{ height: "300px", width: "100%" }}
+                        >
+                          <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+                          />
+                          <Marker position={location}>
+                            <Popup>
+                              📍 {event.event_name}
+                              <br />
+                              {location.lat}, {location.lng}
+                            </Popup>
+                          </Marker>
+                        </MapContainer>
+                      </div>
+                    )}
+                  </div>
+
                   <p>
                     <span className="font-medium text-gray-500">Organization ID: </span>
                     {event.event_org}
