@@ -61,6 +61,28 @@ app.get("/health", (_req, res) => {
 // ---- Serve API ----
 app.use("/api/v1", apiRouter);
 
+
+
+// ---- Serve Uploads with proper CORS ----
+app.use('/uploads', (req, res, next) => {
+  const origin = req.headers.origin || "";
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  }
+
+  // COEP / CORP headers for cross-origin embedding
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+
+  // Handle preflight
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
+
+
 // New: Chat model for saving messages
 const Chat = require("./models/chatModel");
 
@@ -103,6 +125,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  
   socket.on("disconnect", () => {
     console.log("🔴 Socket disconnected:", socket.id);
   });
@@ -112,27 +135,6 @@ io.on("connection", (socket) => {
     console.error("⚠️ Socket error:", err);
   });
 });
-
-// ---- Serve Uploads with proper CORS ----
-app.use('/uploads', (req, res, next) => {
-  const origin = req.headers.origin || "";
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  }
-
-  // COEP / CORP headers for cross-origin embedding
-  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-
-  // Handle preflight
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-
-  next();
-}, express.static(path.join(__dirname, 'uploads')));
-
-
 
 // ---- 404 Handler ----
 app.use((req, res, _next) => {

@@ -5,13 +5,11 @@ import {
 } from "@mui/material";
 import { io } from "socket.io-client";
 
-import axios from "axios";
+
 import SendIcon from '@mui/icons-material/Send';
 
 import api from "../api/axios"; 
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
- 
+
 
 // Initialize socket
 const socket = io(import.meta.env.VITE_SERVER_URL);
@@ -23,7 +21,7 @@ export default function EventChat({ eventId, user_id, role }) {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const theme = useTheme();
-  
+ 
 
   useEffect(() => {
     if (!eventId) return;
@@ -45,8 +43,11 @@ export default function EventChat({ eventId, user_id, role }) {
       setMessages((prev) => [...prev, msg]);
     });
 
-    socket.on("typing", ({ isTyping }) => {
-      setIsTyping(isTyping);
+    socket.on("typing", ({ isTyping, senderId }) => {
+      // Typically, you only want to show 'typing' if it's NOT the current user
+      if (senderId !== socket.id) {
+         setIsTyping(isTyping);
+      }
     });
 
     return () => {
@@ -67,7 +68,7 @@ export default function EventChat({ eventId, user_id, role }) {
       sender_id: user_id,
       sender_role: role,
       message: message.trim(),
-      timestamp: new Date().toISOString()
+      //timestamp: new Date().toISOString()
     };
 
     socket.emit("send_message", payload);
@@ -92,20 +93,24 @@ export default function EventChat({ eventId, user_id, role }) {
   const getInitials = (name) => name?.[0]?.toUpperCase() || "U";
 
   const getMessageAlignment = (msg) => {
-    return msg.sender_role === "user" ? "flex-end" : "flex-start";
-  };
+  // organizer messages on LEFT, volunteer messages on RIGHT
+  return msg.sender_role === "volunteer" ? "flex-end" : "flex-start";
+};
 
-  const getMessageColor = (msg) => {
-    return msg.sender_role === "user"
-      ? theme.palette.primary.main
-      : theme.palette.grey[300];
-  };
+const getMessageColor = (msg) => {
+  // volunteer messages (right) use primary color
+  return msg.sender_role === "volunteer"
+    ? theme.palette.primary.main
+    : theme.palette.grey[300];
+};
 
-  const getTextColor = (msg) => {
-    return msg.sender_role === "user"
-      ? theme.palette.primary.contrastText
-      : theme.palette.text.primary;
-  };
+const getTextColor = (msg) => {
+  // volunteer messages (right) have white text
+  return msg.sender_role === "volunteer"
+    ? theme.palette.primary.contrastText
+    : theme.palette.text.primary;
+};
+
 
   return (
     <Paper elevation={3} sx={{
