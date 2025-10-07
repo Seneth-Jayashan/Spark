@@ -14,6 +14,13 @@ const chatSchema = new mongoose.Schema({
     enum: ['volunteer', 'organizer', 'org_member'],
     required: true,
   },
+  // Denormalized sender display info for quick rendering
+  sender_name: {
+    type: String,
+  },
+  sender_avatar: {
+    type: String,
+  },
   message: {
     type: String,
     required: true,

@@ -204,14 +204,14 @@ const getTextColor = (msg) => {
                   justifyContent={getMessageAlignment(msg)}
                 >
                   {getMessageAlignment(msg) === "flex-start" && (
-                    <Tooltip title={msg.sender_role} arrow>
+                    <Tooltip title={msg.sender_name || msg.sender_role} arrow>
                       <Avatar sx={{
                         bgcolor: theme.palette.secondary.main,
                         width: 32,
                         height: 32,
                         fontSize: '0.875rem'
-                      }}>
-                        {getInitials(msg.sender_role)}
+                      }} src={msg.sender_avatar ? `${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}` : undefined}>
+                        {msg.sender_avatar ? null : getInitials(msg.sender_name || msg.sender_role)}
                       </Avatar>
                     </Tooltip>
                   )}
@@ -228,20 +228,25 @@ const getTextColor = (msg) => {
                       position: 'relative'
                     }}
                   >
+                    {msg.sender_name && (
+                      <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mb: 0.5 }}>
+                        {msg.sender_name}
+                      </Typography>
+                    )}
                     <Typography variant="body2" sx={{ lineHeight: 1.4 }}>
                       {msg.message}
                     </Typography>
                   </Box>
 
                   {getMessageAlignment(msg) === "flex-end" && (
-                    <Tooltip title={msg.sender_role} arrow>
+                    <Tooltip title={msg.sender_name || msg.sender_role} arrow>
                       <Avatar sx={{
                         bgcolor: theme.palette.info.main,
                         width: 32,
                         height: 32,
                         fontSize: '0.875rem'
-                      }}>
-                        {getInitials(msg.sender_role)}
+                      }} src={msg.sender_avatar ? `${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}` : undefined}>
+                        {msg.sender_avatar ? null : getInitials(msg.sender_name || msg.sender_role)}
                       </Avatar>
                     </Tooltip>
                   )}

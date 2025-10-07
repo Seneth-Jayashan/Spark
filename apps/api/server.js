@@ -85,6 +85,8 @@ app.use('/uploads', (req, res, next) => {
 
 // New: Chat model for saving messages
 const Chat = require("./models/chatModel");
+const User = require("./models/user");
+const Organization = require("./models/organization");
 
 // Create HTTP server & wrap with Socket.io
 const server = http.createServer(app); // Create HTTP server from Express app
@@ -107,8 +109,26 @@ io.on("connection", (socket) => {
   // Receive and broadcast a new chat message
   socket.on("send_message", async ({ eventId, sender_id, sender_role, message }) => {
     try {
-      // Persist to Mongo
-      const chat = await Chat.create({ eventId, sender_id, sender_role, message });
+      // Resolve sender display details
+      let sender_name = undefined;
+      let sender_avatar = undefined;
+
+      if (sender_role === "organizer") {
+        const org = await Organization.findOne({ org_id: Number(sender_id) }).lean();
+        if (org) {
+          sender_name = org.org_name;
+          sender_avatar = org.org_logo || undefined;
+        }
+      } else {
+        const user = await User.findOne({ user_id: Number(sender_id) }).lean();
+        if (user) {
+          sender_name = `${user.user_first_name} ${user.user_last_name}`.trim();
+          sender_avatar = user.user_profile_picture || undefined;
+        }
+      }
+
+      // Persist to Mongo with denormalized sender display info
+      const chat = await Chat.create({ eventId, sender_id, sender_role, sender_name, sender_avatar, message });
       const room = `event_${eventId}`;
 
       // Broadcast to everyone in this event room
@@ -117,6 +137,8 @@ io.on("connection", (socket) => {
         eventId: chat.eventId,
         sender_id: chat.sender_id,
         sender_role: chat.sender_role,
+        sender_name: chat.sender_name,
+        sender_avatar: chat.sender_avatar,
         message: chat.message,
         timestamp: chat.timestamp,
       });
