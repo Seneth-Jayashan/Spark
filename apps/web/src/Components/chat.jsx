@@ -23,6 +23,7 @@ export default function EventChat({ eventId, user_id, role }) {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const theme = useTheme();
+  
 
   useEffect(() => {
     if (!eventId) return;

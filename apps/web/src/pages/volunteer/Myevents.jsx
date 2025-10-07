@@ -2,15 +2,18 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import api from "../../api/axios";
+import Chat from "../../Components/chat";
 
 export default function Myevents() {
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedEventId, setSelectedEventId] = useState(null);
+  
 
   useEffect(() => {
-    if (!user?._id) return; // wait until user is available
+    if (!user?._id) return;
 
     const fetchEvents = async () => {
       try {
@@ -30,7 +33,9 @@ export default function Myevents() {
   if (loading) return <div className="p-4">Loading your events...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (events.length === 0)
-    return <div className="p-4">You haven’t registered for any events yet.</div>;
+    return (
+      <div className="p-4">You haven’t registered for any events yet.</div>
+    );
 
   return (
     <div className="p-6">
@@ -44,7 +49,9 @@ export default function Myevents() {
             {/* Event Image */}
             {event.event_images?.length > 0 && (
               <img
-                src={`${import.meta.env.VITE_SERVER_URL}${event.event_images[0]}`}
+                src={`${import.meta.env.VITE_SERVER_URL}${
+                  event.event_images[0]
+                }`}
                 alt={event.event_name}
                 className="w-full h-40 object-cover"
               />
@@ -67,7 +74,29 @@ export default function Myevents() {
                   📍 <strong>Location:</strong> {event.event_venue}
                 </p>
               </div>
+
+              <button
+                onClick={() =>
+                  setSelectedEventId(
+                    selectedEventId === event.event_id ? null : event.event_id
+                  )
+                }
+                className="px-3 py-1 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
+              >
+                Chat
+              </button>
             </div>
+
+            {/* Inline Chat */}
+            {selectedEventId === event.event_id && (
+              <div className="mt-4">
+                <Chat
+                  eventId={event.event_id}
+                  user_id={user?.user_id} // ✅ FIXED
+                  role="volunteer"
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>
