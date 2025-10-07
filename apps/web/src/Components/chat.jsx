@@ -166,6 +166,12 @@ export default function EventChat({ eventId, user_id, role }) {
                   {getMessageAlignment(msg) === "flex-start" && (
                     <Tooltip title={msg.sender_name || msg.sender_role} arrow>
                       <Avatar
+                        src={
+                          msg.sender_avatar
+                            ? `${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}`
+                            : undefined
+                        }
+                        alt={msg.sender_name || msg.sender_role}
                         sx={{
                           bgcolor: theme.palette.secondary.main,
                           width: 32,
@@ -202,6 +208,12 @@ export default function EventChat({ eventId, user_id, role }) {
                   {getMessageAlignment(msg) === "flex-end" && (
                     <Tooltip title={msg.sender_name || msg.sender_role} arrow>
                       <Avatar
+                        src={
+                          msg.sender_avatar
+                            ? `${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}`
+                            : undefined
+                        }
+                        alt={msg.sender_name || msg.sender_role}
                         sx={{
                           bgcolor: theme.palette.info.main,
                           width: 32,
