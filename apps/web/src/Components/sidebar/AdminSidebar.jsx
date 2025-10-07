@@ -8,8 +8,10 @@ import {
   FaCog,
   FaBars,
   FaSignOutAlt,
+  FaUser,
 } from "react-icons/fa";
 import Logo from '../../assets/images/Logo.png';
+import FormIcon from "@mui/icons-material/FormatAlignJustify";
 
 const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
@@ -19,7 +21,8 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
     { name: "Organizations", path: "/dashboard/admin/organizations", icon: <FaBuilding /> },
     { name: "Users", path: "/dashboard/admin/users", icon: <FaUsers /> },
     { name: "Admins", path: "/dashboard/admin/admins", icon: <FaUserShield /> },
-    { name: "Settings", path: "/dashboard/admin/settings", icon: <FaCog /> },
+    { name: "Profile", path:  "/dashboard/admin/profile", icon: <FaUser /> },
+    { name: "Contact Us", path:  "/dashboard/admin/contactus", icon: <FormIcon /> },
   ];
 
   return (
