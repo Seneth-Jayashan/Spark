@@ -1,7 +1,7 @@
 // src/pages/MyEventDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useEvent } from "../contexts/EventContext";
+import { useEvent } from "../../contexts/EventContext";
 import { MessageCircle, ArrowLeft } from "lucide-react";
 
 export default function MyEventDetails() {
