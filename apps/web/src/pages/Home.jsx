@@ -11,6 +11,7 @@ import feature2 from "../assets/images/2.png";
 import feature3 from "../assets/images/3.png";
 import awards from "../assets/images/awards.png";
 import upcomingevents from "../assets/images/upcomingevents.png";
+import { useNavigate } from "react-router-dom";
 
 const HeroPage = () => {
   const ref = useRef(null);
@@ -32,6 +33,7 @@ const HeroPage = () => {
       transition: { staggerChildren: 0.2 },
     },
   };
+  const navigate = useNavigate();
 
   return (
     <>
@@ -62,29 +64,10 @@ const HeroPage = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="bg-blue-900 text-white px-6 py-3 rounded-md font-semibold"
+              onClick={() => navigate("/signup")}
             >
               JOIN WITH US
             </motion.button>
-
-            <div className="flex space-x-4 mt-6 text-white">
-              {[
-                { Icon: Heart, label: "Wishlist" },
-                { Icon: Globe, label: "Explore" },
-                { Icon: BarChart2, label: "Insights" },
-                { Icon: Eye, label: "View" },
-              ].map(({ Icon, label }, i) => (
-                <motion.div
-                  key={i}
-                  whileHover={{ scale: 1.1 }}
-                  className="relative group p-3 border-4 border-orange-400 cursor-pointer bg-white/20 backdrop-blur-lg rounded-3xl shadow-xl"
-                >
-                  <Icon className="text-black w-6 h-6" />
-                  <span className="absolute top-full mt-2 px-3 py-1 text-sm text-blue-700 bg-white/80 rounded-3xl shadow-xl backdrop-blur-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    {label}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
           </div>
 
           <div className="bg-black bg-opacity-80 py-4 px-10 text-center mt-10">
@@ -120,8 +103,8 @@ const HeroPage = () => {
             },
             {
               img: feature2,
-              title: "Earn Badges & Track Impact",
-              desc: "Collect points, earn badges, and see your volunteering journey",
+              title: "Track Impact",
+              desc: "see your volunteering journey and growth over time",
             },
             {
               img: feature3,
@@ -134,19 +117,21 @@ const HeroPage = () => {
               variants={cardVariants}
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.3 }}
-              className="group border rounded-2xl p-6 shadow-lg bg-white hover:shadow-xl hover:border-blue-200 transition-all duration-300"
+              className="group p-[1px] rounded-2xl bg-gradient-to-b from-yellow-400 to-blue-500 shadow-xl hover:shadow-2xl transition-all duration-300"
             >
-              <img
-                src={f.img}
-                alt={f.title}
-                className="mx-auto h-16 mb-4 group-hover:scale-110 transition-transform duration-300"
-              />
-              <h3 className="text-xl font-bold text-blue-900 group-hover:text-orange-500 transition-colors duration-300">
-                {f.title}
-              </h3>
-              <p className="text-sm mt-2 text-gray-600 group-hover:text-gray-800">
-                {f.desc}
-              </p>
+              <div className="rounded-2xl bg-white p-6 h-full text-center">
+                <img
+                  src={f.img}
+                  alt={f.title}
+                  className="mx-auto h-16 mb-4 group-hover:scale-110 transition-transform duration-300"
+                />
+                <h3 className="text-xl font-bold text-blue-900 group-hover:text-orange-500 transition-colors duration-300">
+                  {f.title}
+                </h3>
+                <p className="text-sm mt-2 text-gray-600 group-hover:text-gray-800">
+                  {f.desc}
+                </p>
+              </div>
             </motion.div>
           ))}
         </motion.div>
@@ -183,49 +168,15 @@ const HeroPage = () => {
               <p className="text-gray-600 mb-6 text-base md:text-lg leading-relaxed max-w-xl">
                 Discover what's happening near you and join causes that matter.
               </p>
-              <button className="bg-yellow-400 hover:bg-yellow-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300">
+              <button
+                onClick={() => {
+                  navigate("/events");
+                  window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+                }}
+                className="bg-yellow-400 hover:bg-yellow-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+              >
                 View All Events
               </button>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Achievements Section */}
-
-        <motion.div
-          className="w-full bg-white py-16 px-6 md:px-20"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-2">
-            {/* Left Content */}
-            <div className="text-center md:text-left">
-              <h4 className="text-blue-700 text-sm font-bold uppercase tracking-wide mb-2">
-                Achievements
-              </h4>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Volunteering That Rewards You
-              </h2>
-              <p className="text-gray-600 mb-6 text-base md:text-lg leading-relaxed max-w-xl">
-                Collect points, level up, and earn real-world recognition.
-              </p>
-              <button className="bg-orange-400 hover:bg-orange-500 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300">
-                Learn About Badges
-              </button>
-            </div>
-
-            {/* Right Image */}
-            <div className="flex justify-center md:justify-end">
-              <motion.img
-                whileInView={{ scale: [0.9, 1] }}
-                whileHover={{ rotate: -2, scale: 1.05 }}
-                transition={{ duration: 0.6 }}
-                src={awards}
-                alt="Rewards"
-                className="w-full max-w-sm md:max-w-md rounded-xl shadow-xl object-contain"
-              />
             </div>
           </div>
         </motion.div>
@@ -275,23 +226,25 @@ const HeroPage = () => {
                   scale: 1.05,
                   boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.15)",
                 }}
-                className="relative bg-white rounded-xl border border-blue-400 p-6 pt-16 shadow-md transition-transform duration-300"
+                className="relative p-[1px] rounded-2xl bg-gradient-to-b from-yellow-400 to-blue-500 shadow-xl transition-transform duration-300"
               >
-                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
-                  <motion.img
-                    whileHover={{ scale: 1.1 }}
-                    src={testimonial.img}
-                    alt={testimonial.name}
-                    className="w-20 h-20 rounded-full border-4 border-white shadow-md object-cover transition-transform"
-                  />
-                </div>
-                <div className="mt-4">
-                  <h4 className="text-lg font-semibold mb-2">
-                    {testimonial.name}
-                  </h4>
-                  <p className="text-sm text-gray-700 whitespace-pre-line">
-                    {testimonial.review}
-                  </p>
+                <div className="rounded-2xl bg-white p-6 pt-16 h-full text-center">
+                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
+                    <motion.img
+                      whileHover={{ scale: 1.1 }}
+                      src={testimonial.img}
+                      alt={testimonial.name}
+                      className="w-20 h-20 rounded-full border-4 border-white shadow-md object-cover transition-transform"
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <h4 className="text-lg font-semibold mb-2">
+                      {testimonial.name}
+                    </h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-line">
+                      {testimonial.review}
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -312,6 +265,10 @@ const HeroPage = () => {
             Sign up, find events, and begin your <br /> volunteering journey.
           </h3>
           <motion.button
+            onClick={() => {
+                  navigate("/signup");
+                  window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+                }}
             whileHover={{ scale: 1.05, rotate: [0, 1, -1, 0] }}
             transition={{ duration: 0.3 }}
             className="mt-8 bg-black text-white px-8 py-4 text-lg rounded-full hover:bg-gray-900 transition"

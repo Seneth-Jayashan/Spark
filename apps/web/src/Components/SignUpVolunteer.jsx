@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import Logo from "../assets/images/sparklogo-removebg.png";
 import VSImage from "../assets/images/VSignupimage.jpg";
 import { AuthContext } from "../contexts/AuthContext";
+import Swal from "sweetalert2";
 
 const SignUpVolunteer = () => {
   const { signup, error } = useContext(AuthContext);
@@ -82,7 +83,12 @@ const SignUpVolunteer = () => {
 
     try {
       await signup(formData);
-      alert("Volunteer signed up successfully!");
+      Swal.fire({
+        title: "Success",
+        text: "Volunteer signed up successfully!",
+        icon: "success",
+        confirmButtonColor: "#2563EB" // blue-600
+      });
     } catch (err) {
       console.log(err);
       console.error("Signup failed:", err);
@@ -90,7 +96,7 @@ const SignUpVolunteer = () => {
   };
 
   return (
-    <div className="flex item-center justify-center mb-20 max-sm:px-6">
+    <div className="flex items-center justify-center mb-20 px-4 max-sm:px-6">
       <div className="flex items-stretch justify-between gap-4">
         {/* Left side image */}
         <div className="relative w-96 max-md:hidden">
@@ -111,7 +117,7 @@ const SignUpVolunteer = () => {
         </div>
 
         {/* Signup form */}
-        <div className="flex flex-col items-center justify-center gap-4 w-96 max-sm:w-[330px] mx-auto p-6 border-2 border-yellow-500 bg-white shadow-md rounded-lg">
+        <div className="flex flex-col items-center justify-center gap-4 w-96 max-sm:w-[330px] mx-auto p-6 border-2 border-blue-600 bg-white shadow-lg rounded-xl">
           <img src={Logo} alt="Logo" className="w-42 h-28" />
           <h1 className="text-2xl font-medium max-sm:text-center">
             Join As a Volunteer
@@ -119,14 +125,14 @@ const SignUpVolunteer = () => {
 
           <form onSubmit={handleSubmit} className="w-full">
             {/* First Name */}
-            <div className="mb-3">
+            <div className="mb-4">
               <label className="block text-sm font-medium">First Name</label>
               <input
                 type="text"
                 name="user_first_name"
                 value={formData.user_first_name}
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 placeholder="Enter your first name"
               />
               {errors.user_first_name && (
@@ -135,14 +141,14 @@ const SignUpVolunteer = () => {
             </div>
 
             {/* Last Name */}
-            <div className="mb-3">
+            <div className="mb-4">
               <label className="block text-sm font-medium">Last Name</label>
               <input
                 type="text"
                 name="user_last_name"
                 value={formData.user_last_name}
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 placeholder="Enter your last name"
               />
               {errors.user_last_name && (
@@ -151,14 +157,14 @@ const SignUpVolunteer = () => {
             </div>
 
             {/* Email */}
-            <div className="mb-3">
+            <div className="mb-4">
               <label className="block text-sm font-medium">Email</label>
               <input
                 type="email"
                 name="user_email"
                 value={formData.user_email}
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 placeholder="you@example.com"
               />
               {errors.user_email && (
@@ -167,14 +173,14 @@ const SignUpVolunteer = () => {
             </div>
 
             {/* Password */}
-            <div className="mb-3">
+            <div className="mb-4">
               <label className="block text-sm font-medium">Password</label>
               <input
                 type="password"
                 name="user_password"
                 value={formData.user_password}
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 placeholder="Create a password"
               />
               {errors.user_password && (
@@ -183,7 +189,7 @@ const SignUpVolunteer = () => {
             </div>
 
             {/* Confirm Password */}
-            <div className="mb-3">
+            <div className="mb-4">
               <label className="block text-sm font-medium">
                 Confirm Password
               </label>
@@ -192,7 +198,7 @@ const SignUpVolunteer = () => {
                 name="confirm_password"
                 value={formData.confirm_password}
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 placeholder="Re-enter your password"
               />
               {errors.confirm_password && (
@@ -203,14 +209,14 @@ const SignUpVolunteer = () => {
             </div>
 
             {/* Phone */}
-            <div className="mb-3">
+            <div className="mb-4">
               <label className="block text-sm font-medium">Phone</label>
               <input
                 type="tel"
                 name="user_phone_number"
                 value={formData.user_phone_number}
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 placeholder="e.g., +94 771234567"
               />
               {errors.user_phone_number && (
@@ -221,14 +227,14 @@ const SignUpVolunteer = () => {
             </div>
 
             {/* Address */}
-            <div className="mb-3">
+            <div className="mb-4">
               <label className="block text-sm font-medium">Address</label>
               <input
                 type="text"
                 name="user_address"
                 value={formData.user_address}
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 placeholder="Street, City, ZIP"
               />
               {errors.user_address && (
@@ -237,13 +243,13 @@ const SignUpVolunteer = () => {
             </div>
 
             {/* Terms */}
-            <div className="mb-3 flex items-center">
+            <div className="mb-4 flex items-center">
               <input
                 type="checkbox"
                 name="terms"
                 checked={formData.terms}
                 onChange={handleChange}
-                className="h-4 w-4"
+                className="h-4 w-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
               />
               <label className="ml-2 text-sm">
                 I agree to the Terms & Conditions
@@ -256,7 +262,7 @@ const SignUpVolunteer = () => {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             >
               Sign Up
             </button>
@@ -266,10 +272,7 @@ const SignUpVolunteer = () => {
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
-                <a
-                  href="/login"
-                  className="text-yellow-500 font-medium hover:underline"
-                >
+                <a href="/login" className="text-blue-600 font-medium hover:underline">
                   Login here
                 </a>
               </p>

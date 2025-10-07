@@ -12,6 +12,7 @@ import LoginPage from "./pages/LoginPage";
 import VerifyEmail from "./pages/VerifyEmail";
 import LogoutPage from "./pages/LogoutPage";
 import Events from "./pages/Events";
+import EventDetails from "./pages/EventDetails";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./Components/ResetPassword";
 
@@ -47,6 +48,7 @@ function App() {
         <Route path="/verify/:token" element={<VerifyEmail />} />
         <Route path="/logout" element={<LogoutPage />} />
         <Route path="/events" element={<Events />} />
+        <Route path="/events/:event_id" element={<EventDetails />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
        

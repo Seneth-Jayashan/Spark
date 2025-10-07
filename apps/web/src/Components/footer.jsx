@@ -2,6 +2,7 @@ import React from "react";
 import { FaInstagram, FaLinkedinIn, FaFacebookF, FaXTwitter, FaTiktok } from "react-icons/fa6";
 import Logo from '../assets/images/sparklogo.png';
 
+
 export default function Footer() {
   return (
     <footer className="bg-white text-black py-10 px-6 border-t">
@@ -28,7 +29,6 @@ export default function Footer() {
         <div className="flex flex-col text-sm space-y-1">
           <h4 className="font-semibold text-black">SPARK</h4>
           <a href="/" className="hover:underline">Home</a>
-          <a href="/pricing" className="hover:underline">Pricing</a>
           <a href="/about" className="hover:underline">About Us</a>
           <a href="/contact" className="hover:underline">Contact Us</a>
         </div>
@@ -47,7 +47,7 @@ export default function Footer() {
             </button>
           </div>
           <div className="text-xs mt-2 text-gray-500">
-            <a href="/privacy" className="hover:underline">Privacy Policy</a> | <a href="/terms" className="hover:underline">Terms of Service</a>
+            <a href="/privacy" className="hover:underline">Privacy Policy</a> | <a href="/terms" className="hover:underline">Terms & Conditions</a>
           </div>
         </div>
       </div>
