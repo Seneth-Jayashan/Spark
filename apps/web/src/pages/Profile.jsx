@@ -56,6 +56,9 @@ export default function Profile() {
       Object.entries(formData).forEach(([key, value]) => {
         if (value) data.append(key, value);
       });
+      if (user?.user_id) {
+        data.append("userId", user.user_id);
+      }
 
       await updateProfile(data);
       toast.success("✅ Profile updated successfully!");

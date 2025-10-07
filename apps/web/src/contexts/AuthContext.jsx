@@ -57,9 +57,10 @@ export const AuthProvider = ({ children }) => {
       const res = await api.put("/auth/update", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setUser(res.data);
-      sessionStorage.setItem("user", JSON.stringify(res.data));
-      return res.data;
+      const updated = res.data?.user || res.data;
+      setUser(updated);
+      sessionStorage.setItem("user", JSON.stringify(updated));
+      return updated;
     } catch (err) {
       const msg = err.response?.data?.message || "Profile update failed";
       setError(msg);
@@ -169,6 +170,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         error,
         setError,
+        fetchMe,
+        updateProfile,
         signup,
         login,
         logout,
