@@ -91,16 +91,24 @@ export default function EventChat({ eventId, user_id, role }) {
   };
 
   const getInitials = (name) => name?.[0]?.toUpperCase() || "U";
+  const isOwnMessage = (msg) => String(msg?.sender_id) === String(user_id);
   const getMessageAlignment = (msg) =>
-    msg.sender_role === "volunteer" ? "flex-end" : "flex-start";
-  const getMessageColor = (msg) =>
-    msg.sender_role === "volunteer"
-      ? theme.palette.primary.main
-      : theme.palette.grey[300];
-  const getTextColor = (msg) =>
-    msg.sender_role === "volunteer"
-      ? theme.palette.primary.contrastText
-      : theme.palette.text.primary;
+    isOwnMessage(msg) ? "flex-end" : "flex-start";
+  const getMessageColor = (msg) => {
+    const isOwn = isOwnMessage(msg);
+    if (isOwn) return theme.palette.primary.main; // your messages: blue
+    if (msg?.sender_role === "organizer" || msg?.sender_role === "org_member") return "#FFB238"; // organization: gold
+    if (msg?.sender_role === "volunteer") return theme.palette.grey[300]; // other volunteers: gray
+    return theme.palette.grey[300];
+  };
+  const getTextColor = (msg) => {
+    const bg = getMessageColor(msg);
+    // Use theme contrast for colored bubbles, default text for gray
+    if (bg === theme.palette.primary.main)
+      return theme.palette.primary.contrastText;
+    if (bg === "#FFD700") return theme.palette.getContrastText("#FFD700");
+    return theme.palette.text.primary;
+  };
 
   return (
     <Paper
