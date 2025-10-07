@@ -121,15 +121,14 @@ export default function MyEventDetails() {
           {/* ✅ Chat Button */}
           <button
             onClick={() => toggleChat(event.event_id)}
-            className={`flex-1 px-3 py-2 text-sm rounded-lg transition-colors font-medium ${
+            className={`flex items-center gap-2 mr-10 text-blue-600 hover:text-blue-800 ${
                       selectedEventId === event.event_id
-                        ? 'bg-gray-600 text-white hover:bg-gray-700'
-                        : 'bg-green-600 text-white hover:bg-green-700'
                     }`}
           >
             <MessageCircle size={20} /> Message
           </button>
         </div>
+        
 
         <p className="text-gray-700">{event.event_description}</p>
 
