@@ -102,7 +102,7 @@ export default function Events() {
           filteredEvents.map((event) => (
             <div
               key={event.event_id}
-              onClick={() => navigate(`/event/${event.event_id}`)}
+              onClick={() => navigate(`/dashboard/volunteer/event/${event.event_id}`)}
               className="cursor-pointer bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden flex flex-col"
             >
               {/* Image */}

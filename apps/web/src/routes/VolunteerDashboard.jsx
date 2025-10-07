@@ -4,7 +4,7 @@ import Dashboard from "../pages/volunteer/Dashboard";
 import Profile from "../pages/Profile";
 import Events  from "../pages/volunteer/Events";
 import Myevents from "../pages/volunteer/Myevents";
-import MyEventDetails from "../pages/MyEventDetails";
+import MyEventDetails from "../pages/volunteer/MyEventDetails";
 import EventDetails from "../pages/viewevent";
 
 

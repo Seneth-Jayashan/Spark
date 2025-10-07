@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import Logo from '../../assets/images/Logo.png'; 
 import {
   FaTachometerAlt,
   FaTasks,
@@ -33,7 +34,7 @@ const VolunteerSidebar = ({ isOpen, setIsOpen }) => {
         isOpen ? "w-32" : "w-8"
       } overflow-hidden transition-all duration-300`}
     >
-      <img src="../Logo.png" alt="Logo" className="w-full h-auto" />
+      <img src={Logo} alt="Logo" className="w-full h-auto" />
     </span>
     {isOpen && (
       <span className="font-semibold md:text-2xl text-lg">
