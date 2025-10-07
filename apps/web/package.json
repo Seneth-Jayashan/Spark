@@ -18,6 +18,8 @@
     "axios": "^1.11.0",
     "emoji-picker-react": "^4.14.0",
     "framer-motion": "^12.23.9",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.528.0",
