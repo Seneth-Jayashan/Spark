@@ -32,7 +32,7 @@ export default function EventChat({ eventId, user_id, role }) {
 
     const fetchMessages = async () => {
       try {
-        const res = await api.get(`/chats/${eventId}`);
+        const res = await api.get(`/chat/${eventId}`);
         setMessages(res.data);
       } catch (err) {
         console.error("Failed to load chat:", err);
