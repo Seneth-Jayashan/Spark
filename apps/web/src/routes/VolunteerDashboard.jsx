@@ -4,9 +4,11 @@ import Dashboard from "../pages/volunteer/Dashboard";
 import Profile from "../pages/Profile";
 import Events  from "../pages/volunteer/Events";
 import Myevents from "../pages/volunteer/Myevents";
+import MyEventDetails from "../pages/MyEventDetails";
+import EventDetails from "../pages/viewevent";
 
 
-export default function OrgDashboard() {
+export default function VolanteerDashboard() {
   return (
     
     <Routes>
@@ -15,6 +17,8 @@ export default function OrgDashboard() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/events" element={<Events />} />
       <Route path="/myevents" element={<Myevents />} />
+      <Route path="/myevents/:event_id" element={<MyEventDetails/>} />
+      <Route path="/event/:event_id" element={<EventDetails />} />
 
 
       <Route path="*" element={<Navigate to="/dashboard/volunteer" replace />} />
