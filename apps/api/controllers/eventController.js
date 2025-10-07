@@ -211,6 +211,8 @@ exports.getMembersByEventId = async(req,res) => {
             return res.status(404).json({message: '0 members found'});
         }
 
+        
+
         res.status(200).json({message: `${members.length} members found`, members});
     }catch(error){
         res.status(500).json({ message: error.message });

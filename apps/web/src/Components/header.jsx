@@ -1,12 +1,34 @@
-import React, { useState } from 'react';
-import Logo from '../assets/images/sparklogo-removebg.png';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from "react";
+import Logo from "../assets/images/sparklogo-removebg.png";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import DefaultAvatar from "../assets/images/about us images/person1.png";
 
 function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigation = useNavigate();
   const { user, logout } = useAuth();
+  const API_URL = import.meta.env.VITE_API_URL || "";
+  // Derive uploads base (strip any path like /api/v1)
+  let uploadsBase = "";
+  try {
+    const u = new URL(API_URL);
+    uploadsBase = `${u.protocol}//${u.host}`;
+  } catch {
+    // Fallback if API_URL is relative or invalid
+    uploadsBase = API_URL.split("/").slice(0, 3).join("/");
+  }
+
+  const buildProfileSrc = (raw) => {
+    if (!raw) return DefaultAvatar;
+    // Absolute URL
+    if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+    // Remove leading slash
+    let key = raw.replace(/^\/+/, "");
+    // Remove any leading 'uploads/' to avoid double path
+    key = key.replace(/^uploads\//, "");
+    return `${uploadsBase}/uploads/${key}`;
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -38,14 +60,25 @@ function Header() {
 
       {/* Desktop Navigation */}
       <nav className="hidden md:flex space-x-8 text-blue-700 font-medium">
-        <a href="/" className="hover:text-[#FFB238] transition">Home</a>
-        <a href="/events" className="hover:text-[#FFB238] transition">Events</a>
-        <a href="/about" className="hover:text-[#FFB238] transition">About Us</a>
-        <a href="/contact" className="hover:text-[#FFB238] transition">Contact</a>
+        <a href="/" className="hover:text-[#FFB238] transition">
+          Home
+        </a>
+        <a href="/events" className="hover:text-[#FFB238] transition">
+          Events
+        </a>
+        <a href="/about" className="hover:text-[#FFB238] transition">
+          About Us
+        </a>
+        <a href="/contact" className="hover:text-[#FFB238] transition">
+          Contact
+        </a>
 
         {/* ✅ Role-based Dashboard link */}
         {user && (
-          <a href={getDashboardLink()} className="hover:text-[#FFB238] transition">
+          <a
+            href={getDashboardLink()}
+            className="hover:text-[#FFB238] transition"
+          >
             Dashboard
           </a>
         )}
@@ -56,22 +89,23 @@ function Header() {
         {user ? (
           <>
             {/* ✅ Show profile pic + name */}
-<div className="flex items-center gap-2">
-  <img
-    src={`/uploads/${user.user_profile_picture}`} // adjust path if needed
-    alt="Profile"
-    className="w-8 h-8 rounded-full border cursor-pointer"
-    onClick={() => navigation(getDashboardLink())} // navigate on click
-  />
-  <span
-    className="hidden md:inline font-medium cursor-pointer"
-    onClick={() => navigation(getDashboardLink())} // navigate on click
-  >
-    {user.user_first_name}
-  </span>
-</div>
+            <div className="flex items-center gap-2">
+              <img
+                src={buildProfileSrc(user?.user_profile_picture)}
+                alt="Profile"
+                className="w-8 h-8 rounded-full border cursor-pointer"
+                onError={(e) => { e.currentTarget.src = DefaultAvatar; }}
+                onClick={() => navigation(getDashboardLink())} // navigate on click
+              />
+              <span
+                className="hidden md:inline font-medium cursor-pointer"
+                onClick={() => navigation(getDashboardLink())} // navigate on click
+              >
+                {user.user_first_name}
+              </span>
+            </div>
             <button
-              className="w-full h-wrap rounded-full bg-white/50 border-2 py-2 px-4 whitespace-nowrap"
+              className="rounded-full bg-white/50 border-2 py-2 px-4 whitespace-nowrap ml-4"
               onClick={handleLogout}
             >
               Logout
@@ -95,12 +129,7 @@ function Header() {
         )}
       </div>
 
-      {/* Desktop Button */}
-      <div className="hidden md:block">
-        <button className="bg-[#FFB238] text-white rounded-full px-12 py-2 shadow-md hover:bg-orange-500 transition">
-          Try Demo
-        </button>
-      </div>
+      
 
       {/* Mobile Menu Icon */}
       <button
@@ -108,26 +137,47 @@ function Header() {
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         aria-label="Toggle menu"
       >
-        {isMobileMenuOpen ? '✖' : '☰'}
+        {isMobileMenuOpen ? "✖" : "☰"}
       </button>
 
       {/* Mobile Dropdown Menu */}
       {isMobileMenuOpen && (
         <div className="absolute top-full left-0 w-full bg-white border-t shadow-md flex flex-col items-start px-6 py-4 space-y-3 z-50 md:hidden">
-          <a href="/" className="text-blue-700 hover:text-orange-400 transition">Home</a>
-          <a href="/events" className="text-blue-700 hover:text-orange-400 transition">Events</a>
-          <a href="/about" className="text-blue-700 hover:text-orange-400 transition">About Us</a>
-          <a href="/contact" className="text-blue-700 hover:text-orange-400 transition">Contact</a>
+          <a
+            href="/"
+            className="text-blue-700 hover:text-orange-400 transition"
+          >
+            Home
+          </a>
+          <a
+            href="/events"
+            className="text-blue-700 hover:text-orange-400 transition"
+          >
+            Events
+          </a>
+          <a
+            href="/about"
+            className="text-blue-700 hover:text-orange-400 transition"
+          >
+            About Us
+          </a>
+          <a
+            href="/contact"
+            className="text-blue-700 hover:text-orange-400 transition"
+          >
+            Contact
+          </a>
 
           {user && (
-            <a href={getDashboardLink()} className="text-blue-700 hover:text-orange-400 transition">
+            <a
+              href={getDashboardLink()}
+              className="text-blue-700 hover:text-orange-400 transition"
+            >
               Dashboard
             </a>
           )}
 
-          <button className="bg-orange-400 text-white rounded-full px-4 py-2 shadow-md hover:bg-orange-500 transition mt-2 w-full">
-            Try Demo
-          </button>
+          
 
           {user ? (
             <button
