@@ -11,14 +11,13 @@ import SendIcon from '@mui/icons-material/Send';
 import api from "../api/axios"; 
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
-
-// Get base URL without `/api`
-const baseURL = api.defaults.baseURL.replace("/api", "");
+ 
 
 // Initialize socket
-const socket = io(baseURL);
+const socket = io(import.meta.env.VITE_SERVER_URL);
 
-export default function TicketChat({ eventId, user_id, role }) {
+
+export default function EventChat({ eventId, user_id, role }) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -28,7 +27,7 @@ export default function TicketChat({ eventId, user_id, role }) {
   useEffect(() => {
     if (!eventId) return;
 
-    socket.emit("join_ticket", { eventId: String(eventId) });
+    socket.emit("join_event", { eventId: String(eventId) });
 
     const fetchMessages = async () => {
       try {
@@ -131,7 +130,7 @@ export default function TicketChat({ eventId, user_id, role }) {
         borderRadius: '8px 8px 0 0'
       }}>
         <Typography variant="h6">
-          Ticket #{eventId} - Chat
+          Event #{eventId} - Chat
         </Typography>
         <Badge
           color="blue"

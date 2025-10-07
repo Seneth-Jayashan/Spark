@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useOrg } from "../../../contexts/OrgContext";
 import { useEvent } from "../../../contexts/EventContext";
+import Chat from "../../../Components/chat";
 
 export default function Events() {
   const { currentOrg } = useOrg();
@@ -10,6 +11,7 @@ export default function Events() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [selectedEventId, setSelectedEventId] = useState(null); // store event for chat
 
   useEffect(() => {
     const getAllEvents = async () => {
@@ -35,21 +37,22 @@ export default function Events() {
   }, [currentOrg]);
 
   const handleDelete = async (event_id) => {
-  if (!window.confirm("Are you sure you want to delete this event?")) return;
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
 
-  try {
-    await deleteEvent(event_id);
-    setEvents((prev) => prev.filter((e) => e.event_id !== event_id));
+    try {
+      await deleteEvent(event_id);
+      setEvents((prev) => prev.filter((e) => e.event_id !== event_id));
 
-    {/*// 👇 Redirect somewhere after deletion
+      {
+        /*// 👇 Redirect somewhere after deletion
     navigate("/dashboard/organizer/event/events"); 
-    window.location.reload(); */  }  
-  } catch (err) {
-    console.error("Failed to delete event:", err);
-    alert("Error deleting event. Try again.");
-  }
-};
-
+    window.location.reload(); */
+      }
+    } catch (err) {
+      console.error("Failed to delete event:", err);
+      alert("Error deleting event. Try again.");
+    }
+  };
 
   if (loading) {
     return (
@@ -95,7 +98,9 @@ export default function Events() {
               {/* Event Image */}
               {event.event_images && event.event_images.length > 0 ? (
                 <img
-                  src={`${import.meta.env.VITE_SERVER_URL}${event.event_images[0]}`}
+                  src={`${import.meta.env.VITE_SERVER_URL}${
+                    event.event_images[0]
+                  }`}
                   alt={event.event_name}
                   className="w-full h-48 object-cover"
                 />
@@ -129,11 +134,15 @@ export default function Events() {
                 {/* Actions */}
                 <div className="mt-6 flex gap-3">
                   <button
-  onClick={() => navigate(`/dashboard/organizer/event/update/${event.event_id}`)}
-  className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
->
-  Edit
-</button>
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/organizer/event/update/${event.event_id}`
+                      )
+                    }
+                    className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                  >
+                    Edit
+                  </button>
 
                   <button
                     onClick={() => handleDelete(event.event_id)}
@@ -141,7 +150,28 @@ export default function Events() {
                   >
                     Delete
                   </button>
+                <button
+                    onClick={() =>
+                      setSelectedEventId(
+                        selectedEventId === event.event_id ? null : event.event_id
+                      )
+                    }
+                    className="px-3 py-1 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
+                  >
+                    Chat
+                  </button>
                 </div>
+
+                {/* Inline Chat */}
+                {selectedEventId === event.event_id && (
+                  <div className="mt-4">
+                    <Chat
+                      eventId={event.event_id}
+                      user_id={currentOrg?.organization?.org_id}
+                      role="organizer"
+                    />
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}

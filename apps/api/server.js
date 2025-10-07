@@ -75,24 +75,24 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
-  // Join a ticket-specific room
-  socket.on("join_ticket", ({ ticketId }) => {
-    const room = `ticket_${ticketId}`;
+  // Join a event-specific room
+  socket.on("join_event", ({ eventId }) => {
+    const room = `event_${eventId}`;
     socket.join(room);
     console.log(`→ ${socket.id} joined ${room}`);
   });
 
   // Receive and broadcast a new chat message
-  socket.on("send_message", async ({ ticketId, sender_id, sender_role, message }) => {
+  socket.on("send_message", async ({ eventId, sender_id, sender_role, message }) => {
     try {
       // Persist to Mongo
-      const chat = await Chat.create({ ticketId, sender_id, sender_role, message });
-      const room = `ticket_${ticketId}`;
+      const chat = await Chat.create({ eventId, sender_id, sender_role, message });
+      const room = `event_${eventId}`;
 
-      // Broadcast to everyone in this ticket room
+      // Broadcast to everyone in this event room
       io.to(room).emit("receive_message", {
         _id: chat._id,
-        ticketId: chat.ticketId,
+        eventId: chat.eventId,
         sender_id: chat.sender_id,
         sender_role: chat.sender_role,
         message: chat.message,
@@ -157,7 +157,7 @@ app.use((err, _req, res, _next) => {
 const PORT = Number(process.env.PORT || 5000);
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`✔ Server running on port ${PORT}`);
     });
   })
@@ -165,7 +165,3 @@ connectDB()
     console.error("✖ Failed to connect DB:", e);
     process.exit(1);
   });
-
-server.listen(PORT, () => {
-  console.log(`✔ Server running on port ${PORT}`);
-});
