@@ -2,12 +2,14 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import api from "../../api/axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Myevents() {
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user?._id) return; // wait until user is available
@@ -39,6 +41,7 @@ export default function Myevents() {
         {events.map((event) => (
           <div
             key={event._id}
+            onClick={() => navigate(`/dashboard/volunteer/myevents/${event.event_id}`)}
             className="border rounded-lg shadow bg-white overflow-hidden"
           >
             {/* Event Image */}
