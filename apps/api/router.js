@@ -4,6 +4,7 @@ const userRoutes = require('./routes/userRoutes');
 const organizationRoutes = require('./routes/orgRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const contactRoutes = require('./routes/contactroute');
+const chatRoutes = require('./routes/chatRoute');
 
 const router = Router();
 
@@ -11,6 +12,7 @@ router.use('/auth', userRoutes);
 router.use('/organization', organizationRoutes);
 router.use('/event', eventRoutes);
 router.use('/contact', contactRoutes);
+router.use('/chat', chatRoutes);
 
 
 module.exports = router;
