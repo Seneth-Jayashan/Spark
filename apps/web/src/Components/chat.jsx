@@ -1,19 +1,23 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
-  Box, Typography, TextField, Button, Paper, Divider, Avatar, Stack,
-  IconButton, Tooltip, Badge, useTheme
+  Box,
+  Typography,
+  TextField,
+  IconButton,
+  Tooltip,
+  Avatar,
+  Stack,
+  Paper,
+  Badge,
+  useTheme,
 } from "@mui/material";
 import { io } from "socket.io-client";
+import SendIcon from "@mui/icons-material/Send";
+import api from "../api/axios";
+import EmojiPicker from "emoji-picker-react";
+import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
 
-
-import SendIcon from '@mui/icons-material/Send';
-
-import api from "../api/axios"; 
-
-
-// Initialize socket
 const socket = io(import.meta.env.VITE_SERVER_URL);
-
 
 export default function EventChat({ eventId, user_id, role }) {
   const [message, setMessage] = useState("");
@@ -21,7 +25,11 @@ export default function EventChat({ eventId, user_id, role }) {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const theme = useTheme();
- 
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const handleEmojiClick = (emojiObject) => {
+    setMessage((prevMessage) => prevMessage + emojiObject.emoji);
+  };
 
   useEffect(() => {
     if (!eventId) return;
@@ -36,18 +44,13 @@ export default function EventChat({ eventId, user_id, role }) {
         console.error("Failed to load chat:", err);
       }
     };
-
     fetchMessages();
 
-    socket.on("receive_message", (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    });
-
+    socket.on("receive_message", (msg) =>
+      setMessages((prev) => [...prev, msg])
+    );
     socket.on("typing", ({ isTyping, senderId }) => {
-      // Typically, you only want to show 'typing' if it's NOT the current user
-      if (senderId !== socket.id) {
-         setIsTyping(isTyping);
-      }
+      if (senderId !== socket.id) setIsTyping(isTyping);
     });
 
     return () => {
@@ -62,15 +65,12 @@ export default function EventChat({ eventId, user_id, role }) {
 
   const handleSend = () => {
     if (!message.trim()) return;
-
     const payload = {
       eventId: String(eventId),
       sender_id: user_id,
       sender_role: role,
       message: message.trim(),
-      //timestamp: new Date().toISOString()
     };
-
     socket.emit("send_message", payload);
     setMessage("");
   };
@@ -86,115 +86,75 @@ export default function EventChat({ eventId, user_id, role }) {
     setMessage(e.target.value);
     socket.emit("typing", {
       eventId: String(eventId),
-      isTyping: e.target.value.length > 0
+      isTyping: e.target.value.length > 0,
     });
   };
 
   const getInitials = (name) => name?.[0]?.toUpperCase() || "U";
-
-  const getMessageAlignment = (msg) => {
-  // organizer messages on LEFT, volunteer messages on RIGHT
-  return msg.sender_role === "volunteer" ? "flex-end" : "flex-start";
-};
-
-const getMessageColor = (msg) => {
-  // volunteer messages (right) use primary color
-  return msg.sender_role === "volunteer"
-    ? theme.palette.primary.main
-    : theme.palette.grey[300];
-};
-
-const getTextColor = (msg) => {
-  // volunteer messages (right) have white text
-  return msg.sender_role === "volunteer"
-    ? theme.palette.primary.contrastText
-    : theme.palette.text.primary;
-};
-
+  const getMessageAlignment = (msg) =>
+    msg.sender_role === "volunteer" ? "flex-end" : "flex-start";
+  const getMessageColor = (msg) =>
+    msg.sender_role === "volunteer"
+      ? theme.palette.primary.main
+      : theme.palette.grey[300];
+  const getTextColor = (msg) =>
+    msg.sender_role === "volunteer"
+      ? theme.palette.primary.contrastText
+      : theme.palette.text.primary;
 
   return (
-    <Paper elevation={3} sx={{
-      p: 2,
-      width: "100%",
-      maxWidth: "800px",
-      mx: "auto",
-      mt: 2,
-      borderRadius: '12px',
-      display: 'flex',
-      flexDirection: 'column',
-      height: 'calc(100vh - 200px)',
-      maxHeight: '700px'
-    }}>
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        mb: 1,
-        p: 1,
-        backgroundColor: theme.palette.primary.main,
-        color: theme.palette.primary.contrastText,
-        borderRadius: '8px 8px 0 0'
-      }}>
-        <Typography variant="h6">
-          Event #{eventId} - Chat
-        </Typography>
-        <Badge
-          color="blue"
-          badgeContent={messages.length}
-          max={999}
-          sx={{ mr: 1 }}
-        />
-      </Box>
-
-      <Divider />
-
+    <Paper
+      elevation={0}
+      sx={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 0,
+      }}
+    >
+      {/* Chat Messages Area */}
       <Box
         sx={{
           flex: 1,
           overflowY: "auto",
           p: 2,
           background: theme.palette.background.default,
-          borderRadius: '8px',
-          mb: 2,
-          '&::-webkit-scrollbar': {
-            width: '8px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: theme.palette.grey[200],
-          },
-          '&::-webkit-scrollbar-thumb': {
+          "&::-webkit-scrollbar": { width: "8px" },
+          "&::-webkit-scrollbar-track": { background: theme.palette.grey[200] },
+          "&::-webkit-scrollbar-thumb": {
             backgroundColor: theme.palette.primary.main,
-            borderRadius: '4px',
+            borderRadius: "4px",
           },
         }}
       >
         {messages.length === 0 ? (
-          <Box sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100%',
-            color: theme.palette.text.secondary
-          }}>
-            <Typography variant="body1">
-              No messages yet. Start the conversation!
-            </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+              color: theme.palette.text.secondary,
+            }}
+          >
+            <Typography>No messages yet. Start the conversation!</Typography>
           </Box>
         ) : (
           messages.map((msg, index) => (
             <Box
               key={index}
               sx={{
-                display: 'flex',
+                display: "flex",
                 justifyContent: getMessageAlignment(msg),
-                mb: 2
+                mb: 2,
               }}
             >
               <Box
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  maxWidth: '80%'
+                  display: "flex",
+                  flexDirection: "column",
+                  maxWidth: "80%",
                 }}
               >
                 <Stack
@@ -205,121 +165,130 @@ const getTextColor = (msg) => {
                 >
                   {getMessageAlignment(msg) === "flex-start" && (
                     <Tooltip title={msg.sender_name || msg.sender_role} arrow>
-                      <Avatar sx={{
-                        bgcolor: theme.palette.secondary.main,
-                        width: 32,
-                        height: 32,
-                        fontSize: '0.875rem'
-                      }} src={msg.sender_avatar ? `${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}` : undefined}>
-                        {msg.sender_avatar ? null : getInitials(msg.sender_name || msg.sender_role)}
+                      <Avatar
+                        sx={{
+                          bgcolor: theme.palette.secondary.main,
+                          width: 32,
+                          height: 32,
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        {getInitials(msg.sender_name || msg.sender_role)}
                       </Avatar>
                     </Tooltip>
                   )}
-
                   <Box
                     sx={{
                       p: 1.5,
                       bgcolor: getMessageColor(msg),
                       color: getTextColor(msg),
-                      borderRadius: getMessageAlignment(msg) === "flex-start"
-                        ? '18px 18px 18px 4px'
-                        : '18px 18px 4px 18px',
+                      borderRadius:
+                        getMessageAlignment(msg) === "flex-start"
+                          ? "18px 18px 18px 4px"
+                          : "18px 18px 4px 18px",
                       boxShadow: theme.shadows[1],
-                      position: 'relative'
                     }}
                   >
                     {msg.sender_name && (
-                      <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mb: 0.5 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ opacity: 0.8, display: "block", mb: 0.5 }}
+                      >
                         {msg.sender_name}
                       </Typography>
                     )}
-                    <Typography variant="body2" sx={{ lineHeight: 1.4 }}>
-                      {msg.message}
-                    </Typography>
+                    <Typography variant="body2">{msg.message}</Typography>
                   </Box>
-
                   {getMessageAlignment(msg) === "flex-end" && (
                     <Tooltip title={msg.sender_name || msg.sender_role} arrow>
-                      <Avatar sx={{
-                        bgcolor: theme.palette.info.main,
-                        width: 32,
-                        height: 32,
-                        fontSize: '0.875rem'
-                      }} src={msg.sender_avatar ? `${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}` : undefined}>
-                        {msg.sender_avatar ? null : getInitials(msg.sender_name || msg.sender_role)}
+                      <Avatar
+                        sx={{
+                          bgcolor: theme.palette.info.main,
+                          width: 32,
+                          height: 32,
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        {getInitials(msg.sender_name || msg.sender_role)}
                       </Avatar>
                     </Tooltip>
                   )}
                 </Stack>
-
                 <Typography
                   variant="caption"
                   sx={{
                     mt: 0.5,
                     textAlign: getMessageAlignment(msg),
-                    color: theme.palette.text.secondary
+                    color: theme.palette.text.secondary,
                   }}
                 >
-                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </Typography>
               </Box>
             </Box>
           ))
         )}
+
         {isTyping && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "flex-start", mb: 2 }}>
             <Box
               sx={{
                 p: 1.5,
                 bgcolor: theme.palette.grey[300],
-                borderRadius: '18px 18px 18px 4px',
-                display: 'flex'
+                borderRadius: "18px 18px 18px 4px",
+                display: "flex",
               }}
             >
-              <Box sx={{
-                width: '8px',
-                height: '8px',
-                bgcolor: theme.palette.grey[500],
-                borderRadius: '50%',
-                mr: 0.5,
-                animation: 'pulse 1.5s infinite ease-in-out',
-                '@keyframes pulse': {
-                  '0%, 100%': { opacity: 0.3 },
-                  '50%': { opacity: 1 }
-                }
-              }} />
-              <Box sx={{
-                width: '8px',
-                height: '8px',
-                bgcolor: theme.palette.grey[500],
-                borderRadius: '50%',
-                mr: 0.5,
-                animation: 'pulse 1.5s infinite ease-in-out',
-                animationDelay: '0.2s'
-              }} />
-              <Box sx={{
-                width: '8px',
-                height: '8px',
-                bgcolor: theme.palette.grey[500],
-                borderRadius: '50%',
-                animation: 'pulse 1.5s infinite ease-in-out',
-                animationDelay: '0.4s'
-              }} />
+              {[0, 0.2, 0.4].map((delay, i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    width: "8px",
+                    height: "8px",
+                    bgcolor: theme.palette.grey[500],
+                    borderRadius: "50%",
+                    mr: i < 2 ? 0.5 : 0,
+                    animation: "pulse 1.5s infinite ease-in-out",
+                    animationDelay: `${delay}s`,
+                    "@keyframes pulse": {
+                      "0%,100%": { opacity: 0.3 },
+                      "50%": { opacity: 1 },
+                    },
+                  }}
+                />
+              ))}
             </Box>
           </Box>
         )}
         <div ref={messagesEndRef} />
       </Box>
 
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        p: 1,
-        borderTop: `1px solid ${theme.palette.divider}`,
-        backgroundColor: theme.palette.background.paper,
-        borderRadius: '0 0 8px 8px'
-      }}>
+      {/* Input Box */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          p: 1,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+        }}
+      >
+        {showEmojiPicker && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: "60px", // just above input bar
+              right: "10px",
+              zIndex: 1000,
+            }}
+          >
+            <EmojiPicker onEmojiClick={handleEmojiClick} />
+          </Box>
+        )}
         <TextField
           fullWidth
           placeholder="Type a message..."
@@ -330,12 +299,16 @@ const getTextColor = (msg) => {
           maxRows={4}
           size="small"
           sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '20px',
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "20px",
               backgroundColor: theme.palette.background.default,
-            }
+            },
           }}
         />
+        <IconButton onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+          <InsertEmoticonIcon />
+        </IconButton>
+
         <Tooltip title="Send">
           <IconButton
             color="primary"
@@ -344,12 +317,8 @@ const getTextColor = (msg) => {
             sx={{
               backgroundColor: theme.palette.primary.main,
               color: theme.palette.primary.contrastText,
-              '&:hover': {
-                backgroundColor: theme.palette.primary.dark
-              },
-              '&:disabled': {
-                backgroundColor: theme.palette.grey[300]
-              }
+              "&:hover": { backgroundColor: theme.palette.primary.dark },
+              "&:disabled": { backgroundColor: theme.palette.grey[300] },
             }}
           >
             <SendIcon />

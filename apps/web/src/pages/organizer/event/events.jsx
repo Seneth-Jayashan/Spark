@@ -216,14 +216,13 @@ export default function Events() {
               </div>
 
               {/* Chat Body */}
-<div className="flex-1 overflow-hidden flex flex-col">
-  <Chat
-    eventId={selectedEventId}
-    user_id={currentOrg?.organization?.org_id}
-    role="organizer"
-  />
-</div>
-
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <Chat
+                  eventId={selectedEventId}
+                  user_id={currentOrg?.organization?.org_id}
+                  role="organizer"
+                />
+              </div>
             </div>
           </div>
         </div>
