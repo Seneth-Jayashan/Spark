@@ -9,6 +9,7 @@ const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
 const apiRouter = require("./router");
+const http = require("http");
 
 const app = express();
 
@@ -60,6 +61,8 @@ app.get("/health", (_req, res) => {
 // ---- Serve API ----
 app.use("/api/v1", apiRouter);
 
+
+
 // ---- Serve Uploads with proper CORS ----
 app.use('/uploads', (req, res, next) => {
   const origin = req.headers.origin || "";
@@ -80,6 +83,80 @@ app.use('/uploads', (req, res, next) => {
 }, express.static(path.join(__dirname, 'uploads')));
 
 
+// New: Chat model for saving messages
+const Chat = require("./models/chatModel");
+const User = require("./models/user");
+const Organization = require("./models/organization");
+
+// Create HTTP server & wrap with Socket.io
+const server = http.createServer(app); // Create HTTP server from Express app
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
+// Socket.io real-time chat handling
+io.on("connection", (socket) => {
+  console.log("🟢 Socket connected:", socket.id);
+
+  // Join a event-specific room
+  socket.on("join_event", ({ eventId }) => {
+    const room = `event_${eventId}`;
+    socket.join(room);
+    console.log(`→ ${socket.id} joined ${room}`);
+  });
+
+  // Receive and broadcast a new chat message
+  socket.on("send_message", async ({ eventId, sender_id, sender_role, message }) => {
+    try {
+      // Resolve sender display details
+      let sender_name = undefined;
+      let sender_avatar = undefined;
+
+      if (sender_role === "organizer") {
+        const org = await Organization.findOne({ org_id: Number(sender_id) }).lean();
+        if (org) {
+          sender_name = org.org_name;
+          sender_avatar = org.org_logo || undefined;
+        }
+      } else {
+        const user = await User.findOne({ user_id: Number(sender_id) }).lean();
+        if (user) {
+          sender_name = `${user.user_first_name} ${user.user_last_name}`.trim();
+          sender_avatar = user.user_profile_picture || undefined;
+        }
+      }
+
+      // Persist to Mongo with denormalized sender display info
+      const chat = await Chat.create({ eventId, sender_id, sender_role, sender_name, sender_avatar, message });
+      const room = `event_${eventId}`;
+
+      // Broadcast to everyone in this event room
+      io.to(room).emit("receive_message", {
+        _id: chat._id,
+        eventId: chat.eventId,
+        sender_id: chat.sender_id,
+        sender_role: chat.sender_role,
+        sender_name: chat.sender_name,
+        sender_avatar: chat.sender_avatar,
+        message: chat.message,
+        timestamp: chat.timestamp,
+      });
+    } catch (err) {
+      console.error("⚠️ Error saving chat or broadcasting:", err); // More descriptive error
+    }
+  });
+
+  
+  socket.on("disconnect", () => {
+    console.log("🔴 Socket disconnected:", socket.id);
+  });
+
+  // Handle potential Socket.IO errors
+  socket.on("error", (err) => {
+    console.error("⚠️ Socket error:", err);
+  });
+});
 
 // ---- 404 Handler ----
 app.use((req, res, _next) => {
@@ -104,7 +181,7 @@ app.use((err, _req, res, _next) => {
 const PORT = Number(process.env.PORT || 5000);
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`✔ Server running on port ${PORT}`);
     });
   })
