@@ -152,16 +152,16 @@ export default function Events() {
                   >
                     Delete
                   </button>
-                  
+
                   <button
                     onClick={() => toggleChat(event.event_id)}
                     className={`px-3 py-1 rounded-lg text-sm transition-colors font-medium ${
                       selectedEventId === event.event_id
-                        ? 'bg-gray-600 text-white hover:bg-gray-700'
-                        : 'bg-green-600 text-white hover:bg-green-700'
+                        ? "bg-gray-600 text-white hover:bg-gray-700"
+                        : "bg-green-600 text-white hover:bg-green-700"
                     }`}
                   >
-                    {selectedEventId === event.event_id ? 'Close Chat' : 'Chat'}
+                    {selectedEventId === event.event_id ? "Close Chat" : "Chat"}
                   </button>
                 </div>
               </div>
@@ -174,43 +174,58 @@ export default function Events() {
       {selectedEventId && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={closeChat}
           ></div>
-          
-          {/* Chat Container */}
-<div className="absolute right-0 top-0 h-full w-1/2 bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
-  <div className="flex flex-col h-full">
-    {/* Chat Header */}
-    <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white flex-shrink-0">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900">Event Chat</h3>
-        <p className="text-sm text-gray-600">
-          {events.find(e => e.event_id === selectedEventId)?.event_name}
-        </p>
-      </div>
-      <button
-        onClick={closeChat}
-        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-      >
-        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
 
-    {/* Chat Body */}
-    <div className="flex-1 h-0 overflow-hidden">
-      <Chat
-        eventId={selectedEventId}
-        user_id={currentOrg?.organization?.org_id}
-        role="organizer"
-      />
-    </div>
-  </div>
+          {/* Chat Container */}
+          <div className="absolute right-0 top-0 h-full w-1/2 bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
+            <div className="flex flex-col h-full">
+              {/* Chat Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white flex-shrink-0">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Event Chat
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {
+                      events.find((e) => e.event_id === selectedEventId)
+                        ?.event_name
+                    }
+                  </p>
+                </div>
+                <button
+                  onClick={closeChat}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Chat Body */}
+<div className="flex-1 overflow-hidden flex flex-col">
+  <Chat
+    eventId={selectedEventId}
+    user_id={currentOrg?.organization?.org_id}
+    role="organizer"
+  />
 </div>
 
+            </div>
+          </div>
         </div>
       )}
     </div>
