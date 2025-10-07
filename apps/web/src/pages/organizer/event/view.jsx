@@ -8,7 +8,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// ✅ Fix Leaflet default icon issue
+// Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -21,21 +21,21 @@ L.Icon.Default.mergeOptions({
 
 export default function ViewEvent() {
   const { id } = useParams();
-  const { fetchEvent, loading } = useEvent();
+  const { fetchEvent, getMembers, loading } = useEvent();
   const [event, setEvent] = useState(null);
   const [volunteers, setVolunteers] = useState([]);
   const [activeTab, setActiveTab] = useState("details");
   const [location, setLocation] = useState(null);
 
-  // ✅ Fetch event
   useEffect(() => {
     if (!id) return;
+
     const fetchData = async () => {
       try {
+        // Fetch event details
         const data = await fetchEvent(id);
-        const ev = data?.event;
+        const ev = data?.event || data; // fallback if API returns event directly
         setEvent(ev);
-        setVolunteers(data?.volunteers || []);
 
         // Parse geolocation
         let geo = null;
@@ -57,10 +57,15 @@ export default function ViewEvent() {
           }
         }
         setLocation(geo || { lat: 6.9271, lng: 79.8612 }); // Default: Colombo
+
+        // Fetch volunteers
+        const members = await getMembers(id);
+        setVolunteers(members || []);
       } catch (error) {
-        console.error("Error fetching event:", error);
+        console.error("Error fetching event or members:", error);
       }
     };
+
     fetchData();
   }, [id]);
 
@@ -79,8 +84,8 @@ export default function ViewEvent() {
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 text-gray-800 px-8 py-10">
-      {/* 🏷️ Header */}
+    <div className="min-h-screen bg-gray-100 text-gray-800 px-6 py-10">
+      {/* Header */}
       <div className="flex justify-between items-center mb-10">
         <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
           {event.event_name}
@@ -96,8 +101,8 @@ export default function ViewEvent() {
         </span>
       </div>
 
-      {/* 🔹 Tabs */}
-      <div className="relative flex items-center bg-gray-100 p-1 rounded-full shadow-inner w-fit mb-10">
+      {/* Tabs */}
+      <div className="flex bg-gray-100 p-1 rounded-full shadow-inner w-fit mb-8">
         {["details", "volunteers", "analytics"].map((tab) => {
           const labels = {
             details: "Event Details",
@@ -127,248 +132,207 @@ export default function ViewEvent() {
         })}
       </div>
 
-      {/* 🧭 Content */}
-      <div className="relative overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 40, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -40, scale: 0.98 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200"
-          >
-            {/* 🗂️ Event Details */}
-            {activeTab === "details" && (
-              <div>
-                <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500 mb-6">
-                  Event Information
-                </h2>
+      {/* Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -40 }}
+          transition={{ duration: 0.4 }}
+          className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200"
+        >
+          {/* Event Details */}
+          {activeTab === "details" && (
+            <div>
+              <h2 className="text-2xl font-semibold mb-6 text-blue-600">
+                Event Information
+              </h2>
 
-                {/* 🖼️ Image Carousel */}
-                {event.event_images?.length > 0 ? (
-                  <div className="flex gap-4 overflow-x-auto pb-3 mb-6 snap-x snap-mandatory">
-                    {event.event_images.map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="relative w-56 h-36 flex-shrink-0 snap-start rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
-                      >
-                        <img
-                          src={`${import.meta.env.VITE_SERVER_URL}${img}`}
-                          alt={`Event ${idx + 1}`}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="w-full h-40 bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center text-gray-500 rounded-2xl mb-6">
-                    No Images Available
-                  </div>
-                )}
-
-                {/* 💎 Cool Info Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                  {/* Left Column */}
-                  <div className="space-y-4">
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100 shadow-sm"
+              {/* Image Carousel */}
+              {event.event_images?.length > 0 ? (
+                <div className="flex gap-6 overflow-x-auto pb-3 mb-8 snap-x snap-mandatory">
+                  {event.event_images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-72 h-48 flex-shrink-0 snap-start rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
                     >
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-indigo-700">
-                        <Users size={18} className="text-indigo-500" /> Event Name
-                      </h3>
-                      <p className="text-gray-700 mt-1">{event.event_name}</p>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-100 shadow-sm"
-                    >
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-purple-700">
-                        📝 Description
-                      </h3>
-                      <p className="text-gray-700 mt-1">
-                        {event.event_description || "No description provided."}
-                      </p>
-                    </motion.div>
-
-                    {/* 🔥 Highlight Location */}
-                    <motion.div
-                      whileHover={{ scale: 1.03 }}
-                      className="bg-gradient-to-r from-blue-100 to-cyan-100 p-5 rounded-2xl border border-blue-200 shadow-md"
-                    >
-                      <h3 className="flex items-center gap-2 text-xl font-bold text-blue-800">
-                        <MapPin size={20} className="text-blue-600" /> Location
-                      </h3>
-                      <p className="text-lg text-blue-700 mt-1 font-medium">
-                        {event.event_venue || "Venue not specified"}
-                      </p>
-                    </motion.div>
-
-                    {/* 🔥 Highlight Date */}
-                    <motion.div
-                      whileHover={{ scale: 1.03 }}
-                      className="bg-gradient-to-r from-green-100 to-emerald-100 p-5 rounded-2xl border border-green-200 shadow-md"
-                    >
-                      <h3 className="flex items-center gap-2 text-xl font-bold text-green-800">
-                        <CalendarDays size={20} className="text-green-600" /> Date & Time
-                      </h3>
-                      <p className="text-lg text-green-700 mt-1 font-medium">
-                        {event.event_date
-                          ? new Date(event.event_date).toLocaleDateString()
-                          : "N/A"}{" "}
-                        at {event.event_time || "N/A"}
-                      </p>
-                    </motion.div>
-                  </div>
-
-                  {/* Right Column */}
-                  <div className="space-y-4">
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-100 shadow-sm"
-                    >
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-yellow-700">
-                        🏢 Organization ID
-                      </h3>
-                      <p className="text-gray-700 mt-1">{event.event_org}</p>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-gradient-to-r from-sky-50 to-blue-50 p-4 rounded-xl border border-sky-100 shadow-sm"
-                    >
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-sky-700">
-                        🙌 Volunteers
-                      </h3>
-                      <p className="text-gray-700 mt-1">
-                        Needed: <span className="font-bold">{event.need_count ?? 0}</span>{" "}
-                        | Joined:{" "}
-                        <span className="font-bold text-green-600">
-                          {event.volunteer_count ?? 0}
-                        </span>
-                      </p>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200 shadow-sm"
-                    >
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-700">
-                        ⏰ Created On
-                      </h3>
-                      <p className="text-gray-700 mt-1">
-                        {new Date(event.created_at).toLocaleString()}
-                      </p>
-                    </motion.div>
-                  </div>
-                </div>
-
-                {/* 🗺️ Map */}
-                <div className="mt-10 border border-gray-200 rounded-2xl overflow-hidden shadow-md">
-                  {location ? (
-                    <MapContainer
-                      center={[location.lat, location.lng]}
-                      zoom={13}
-                      scrollWheelZoom={false}
-                      dragging={false}
-                      doubleClickZoom={false}
-                      zoomControl={false}
-                      className="w-full h-72 rounded-2xl"
-                    >
-                      <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                      <img
+                        src={`${import.meta.env.VITE_SERVER_URL}${img}`}
+                        alt={`Event ${idx + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />
-                      <Marker position={[location.lat, location.lng]}>
-                        <Popup>{event.event_venue || "Event Location"}</Popup>
-                      </Marker>
-                    </MapContainer>
-                  ) : (
-                    <p className="text-gray-500 p-6 text-center">
-                      Geolocation not available.
-                    </p>
-                  )}
+                      <div className="absolute inset-0 bg-black/20" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500 rounded-2xl mb-8">
+                  No Images Available
+                </div>
+              )}
+
+              {/* Info Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <InfoCard title="Event Name" icon={<Users size={18} />} value={event.event_name} />
+                  <InfoCard
+                    title="Description"
+                    icon="📝"
+                    value={event.event_description || "No description provided."}
+                    longText
+                  />
+                  <HighlightCard
+                    title="Location"
+                    icon={<MapPin size={20} />}
+                    color="blue"
+                    value={event.event_venue || "Venue not specified"}
+                  />
+                  <HighlightCard
+                    title="Date & Time"
+                    icon={<CalendarDays size={20} />}
+                    color="green"
+                    value={
+                      (event.event_date
+                        ? new Date(event.event_date).toLocaleDateString()
+                        : "N/A") + ` at ${event.event_time || "N/A"}`
+                    }
+                  />
                 </div>
 
-                {location && (
-                  <div className="mt-3 text-sm text-gray-600 flex items-center gap-2">
-                    📍 <span>Lat: {location.lat}</span> |{" "}
-                    <span>Lng: {location.lng}</span>
-                  </div>
-                )}
+                <div className="space-y-4">
+                  <InfoCard title="Organization ID" icon="🏢" value={event.event_org} />
+                  <InfoCard
+                    title="Volunteers"
+                    icon="🙌"
+                    value={`Needed: ${event.need_count ?? 0} | Joined: ${volunteers.length}`}
+                  />
+                  <InfoCard
+                    title="Created On"
+                    icon="⏰"
+                    value={new Date(event.created_at).toLocaleString()}
+                  />
+                </div>
               </div>
-            )}
 
-            {/* 🧑‍🤝‍🧑 Volunteers Tab */}
-            {activeTab === "volunteers" && (
-              <div>
-                <h2 className="text-xl font-semibold text-blue-600 mb-4">
-                  Volunteers
-                </h2>
-                {volunteers.length > 0 ? (
-                  <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {volunteers.map((v) => (
-                      <motion.li
-                        key={v.user_id}
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ duration: 0.2 }}
-                        className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100 shadow-sm hover:shadow-md"
-                      >
-                        <p className="font-semibold text-gray-800">
-                          {v.user_name}
-                        </p>
-                        <p className="text-sm text-gray-500">{v.email}</p>
-                      </motion.li>
-                    ))}
-                  </ul>
+              {/* Map */}
+              <div className="mt-10 border border-gray-300 rounded-2xl overflow-hidden shadow-md">
+                {location ? (
+                  <MapContainer
+                    center={[location.lat, location.lng]}
+                    zoom={13}
+                    scrollWheelZoom={false}
+                    dragging={false}
+                    doubleClickZoom={false}
+                    zoomControl={false}
+                    className="w-full h-72"
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    />
+                    <Marker position={[location.lat, location.lng]}>
+                      <Popup>{event.event_venue || "Event Location"}</Popup>
+                    </Marker>
+                  </MapContainer>
                 ) : (
-                  <p className="text-gray-500">
-                    No volunteers have joined yet.
-                  </p>
+                  <p className="text-gray-500 p-6 text-center">Geolocation not available.</p>
                 )}
               </div>
-            )}
 
-            {/* 📊 Analytics Tab */}
-            {activeTab === "analytics" && (
-              <div>
-                <h2 className="text-xl font-semibold text-blue-600 mb-4">
-                  Event Analytics
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="bg-blue-50 rounded-xl p-6 text-center shadow-sm">
-                    <p className="text-lg font-bold text-blue-600">
-                      {event.need_count ?? 0}
-                    </p>
-                    <p className="text-gray-600 text-sm">Volunteers Needed</p>
-                  </div>
-                  <div className="bg-green-50 rounded-xl p-6 text-center shadow-sm">
-                    <p className="text-lg font-bold text-green-600">
-                      {event.volunteer_count ?? 0}
-                    </p>
-                    <p className="text-gray-600 text-sm">Volunteers Joined</p>
-                  </div>
-                  <div className="bg-indigo-50 rounded-xl p-6 text-center shadow-sm">
-                    <p className="text-lg font-bold text-indigo-600">
-                      {event.event_status ? "Active" : "Inactive"}
-                    </p>
-                    <p className="text-gray-600 text-sm">Status</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-6 text-center shadow-sm">
-                    <p className="text-lg font-bold text-gray-700">
-                      {new Date(event.created_at).toLocaleDateString()}
-                    </p>
-                    <p className="text-gray-600 text-sm">Created Date</p>
-                  </div>
+              {location && (
+                <div className="mt-3 text-sm text-gray-600 flex items-center gap-2">
+                  📍 <span>Lat: {location.lat}</span> | <span>Lng: {location.lng}</span>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Volunteers Tab */}
+          {activeTab === "volunteers" && (
+            <div>
+              <h2 className="text-xl font-semibold text-blue-600 mb-4">Volunteers</h2>
+              {volunteers.length > 0 ? (
+                <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {volunteers.map((v) => (
+                    <motion.li
+                      key={v.user_id}
+                      whileHover={{ scale: 1.02 }}
+                      transition={{ duration: 0.2 }}
+                      className="bg-gray-100 p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md"
+                    >
+                      <p className="font-bold">{v.user_name}</p>
+                      <p className="text-sm text-gray-600">{v.email}</p>
+                    </motion.li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">No volunteers have joined yet.</p>
+              )}
+            </div>
+          )}
+
+          {/* Analytics Tab */}
+          {activeTab === "analytics" && (
+            <div>
+              <h2 className="text-xl font-semibold text-blue-600 mb-4">Event Analytics</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {[
+                  { title: "Volunteers Needed", value: event.need_count ?? 0 },
+                  { title: "Volunteers Joined", value: volunteers.length },
+                  { title: "Status", value: event.event_status ? "Active" : "Inactive" },
+                  { title: "Created Date", value: new Date(event.created_at).toLocaleDateString() },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-gray-100 rounded-xl p-6 text-center shadow-sm border border-gray-200"
+                  >
+                    <p className="text-lg font-bold">{item.value}</p>
+                    <p className="text-gray-600 text-sm">{item.title}</p>
+                  </div>
+                ))}
               </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
+
+/* --- Reusable Sub Components --- */
+const InfoCard = ({ title, icon, value, longText }) => (
+  <motion.div
+    whileHover={{ scale: 1.02 }}
+    className="bg-gray-100 p-4 rounded-xl border border-gray-200 shadow-sm"
+  >
+    <h3 className="flex items-center gap-2 text-lg font-semibold">
+      {icon} {title}
+    </h3>
+    <p
+      className={`mt-1 font-medium text-gray-800 ${
+        longText ? "break-words whitespace-pre-wrap" : ""
+      }`}
+    >
+      {value}
+    </p>
+  </motion.div>
+);
+
+const HighlightCard = ({ title, icon, color, value }) => {
+  const colorClasses = {
+    blue: "bg-blue-100 text-blue-800 border-blue-300",
+    green: "bg-green-100 text-green-800 border-green-300",
+  };
+  return (
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      className={`p-5 rounded-2xl border shadow-md ${colorClasses[color]}`}
+    >
+      <h3 className="flex items-center gap-2 text-xl font-bold">
+        {icon} {title}
+      </h3>
+      <p className="mt-1 text-lg font-medium">{value}</p>
+    </motion.div>
+  );
+};
