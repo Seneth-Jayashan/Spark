@@ -101,44 +101,35 @@ export default function Events() {
               onClick={() =>
                 navigate(`/dashboard/organizer/event/view/${event.event_id}`)
               }
-              className="bg-white rounded-2xl shadow-md hover:shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 group cursor-pointer"
+              className="bg-white rounded-2xl shadow-md hover:shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 group cursor-pointer relative"
             >
-              {/* Image Section */}
-              {event.event_images?.length > 0 ? (
-                <div className="overflow-hidden">
+              {/* Image Section with Status Badge */}
+              <div className="relative">
+                {event.event_images && event.event_images.length > 0 ? (
                   <img
                     src={`${import.meta.env.VITE_SERVER_URL}${event.event_images[0]}`}
                     alt={event.event_name}
                     className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                </div>
-              {/* Status Badge */}
-              <div className="absolute top-3 right-3">
-                {event.event_status ? (
-                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                    Active
-                  </span>
                 ) : (
-                  <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-                    Inactive
-                  </span>
+                  <div className="w-full h-52 bg-gray-200 flex items-center justify-center text-gray-500">
+                    No Image
+                  </div>
                 )}
-              </div>
 
-              {/* Event Image */}
-              {event.event_images && event.event_images.length > 0 ? (
-                <img
-                  src={`${import.meta.env.VITE_SERVER_URL}${
-                    event.event_images[0]
-                  }`}
-                  alt={event.event_name}
-                  className="w-full h-48 object-cover"
-                />
-              ) : (
-                <div className="w-full h-52 bg-gray-200 flex items-center justify-center text-gray-500">
-                  No Image
+                {/* Status Badge */}
+                <div className="absolute top-3 right-3">
+                  {event.event_status ? (
+                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                      Active
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                      Inactive
+                    </span>
+                  )}
                 </div>
-              )}
+              </div>
 
               {/* Card Body */}
               <div className="p-6">
@@ -197,17 +188,10 @@ export default function Events() {
                   >
                     <Edit3 size={16} /> Edit
                   </button>
-                  <button
-                    onClick={() => handleDelete(event.event_id)}
-                    className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium text-sm transition"
-                    className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
-                  >
-                    Edit
-                  </button>
 
                   <button
                     onClick={() => handleDelete(event.event_id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
+                    className="px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors flex items-center gap-2"
                   >
                     <Trash2 size={16} /> Delete
                   </button>
