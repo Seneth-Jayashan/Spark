@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { CalendarDays, MapPin, Users } from "lucide-react";
+import { useEvent } from "../../../contexts/EventContext";
 
 export default function ViewEvent() {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [volunteers, setVolunteers] = useState([]);
   const [activeTab, setActiveTab] = useState("details");
-  const [loading, setLoading] = useState(true);
+  const { fetchEvent, loading } = useEvent();
 
   useEffect(() => {
       if (!id) return;
@@ -17,7 +18,8 @@ export default function ViewEvent() {
       const fetchData = async () => {
         try {
           const event = await fetchEvent(id);
-          setEvent(event);
+          console.log('event:', event?.event);
+          setEvent(event?.event);
         } catch (error) {
           console.error("Error fetching event:", error);
         }
