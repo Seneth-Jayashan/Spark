@@ -5,6 +5,7 @@ import { useEvent } from "../../../contexts/EventContext";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateEvent() {
   const { createEvent, loading } = useEvent();
@@ -24,6 +25,7 @@ export default function CreateEvent() {
   const [previewImages, setPreviewImages] = useState([]);
   const fileInputRef = useRef(null);
   const [location, setLocation] = useState(null);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -38,57 +40,60 @@ export default function CreateEvent() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!location) {
-      Swal.fire({
-        icon: "warning",
-        title: "No location selected",
-        text: "Please select a location on the map",
-      });
-      return;
+  if (!location) {
+    Swal.fire({
+      icon: "warning",
+      title: "No location selected",
+      text: "Please select a location on the map",
+    });
+    return;
+  }
+
+  const data = new FormData();
+  Object.entries({
+    ...formData,
+    event_geolocation: JSON.stringify(location),
+  }).forEach(([key, value]) => {
+    if (key === "event_images" && value.length > 0) {
+      Array.from(value).forEach((file) => data.append("event_images", file));
+    } else {
+      data.append(key, value);
     }
+  });
 
-    const data = new FormData();
-    Object.entries({
-      ...formData,
-      event_geolocation: JSON.stringify(location),
-    }).forEach(([key, value]) => {
-      if (key === "event_images" && value.length > 0) {
-        Array.from(value).forEach((file) => data.append("event_images", file));
-      } else {
-        data.append(key, value);
-      }
+  try {
+    await createEvent(data);
+
+    // SweetAlert2 success popup
+    Swal.fire({
+      icon: "success",
+      title: "Event Created!",
+      text: "Your event has been created successfully.",
+      confirmButtonColor: "#F59E0B", // blue-900
+      }).then(() => {
+      // Redirect after closing the alert
+      navigate("/dashboard/organizer/event/events");
     });
 
-    try {
-      await createEvent(data);
+    // Reset form
+    setFormData(initialForm);
+    setPreviewImages([]);
+    setLocation(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
 
-      toast.success("✅ Event created successfully!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Failed to create event. Please try again.",
+    });
+  }
+};
 
-      // Reset
-      setFormData(initialForm);
-      setPreviewImages([]);
-      setLocation(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-
-    } catch (err) {
-      console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Failed to create event. Please try again.",
-      });
-    }
-  };
 
   return (
     <div className="min-h-[calc(100vh-8rem)] bg-gradient-to-br from-blue-50 to-amber-50 py-8 px-4">

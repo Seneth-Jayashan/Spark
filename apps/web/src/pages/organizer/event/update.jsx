@@ -3,7 +3,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import MapPicker from "../../../Components/MapPicker";
 import { useEvent } from "../../../contexts/EventContext";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate  } from "react-router-dom";
+import Swal from "sweetalert2"; 
 
 export default function UpdateEvent() {
   const { event_id } = useParams();
@@ -25,6 +26,7 @@ export default function UpdateEvent() {
   const [previewImages, setPreviewImages] = useState([]);
   const [location, setLocation] = useState(null);
   const [message, setMessage] = useState({ text: "", type: "" });
+  const navigate = useNavigate();
 
   // Fetch existing event data
   useEffect(() => {
@@ -97,33 +99,58 @@ export default function UpdateEvent() {
 
   // Submit updated event
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!location || isNaN(location.lat) || isNaN(location.lng)) {
-      alert("Please select a valid location on the map.");
-      return;
-    }
+  e.preventDefault();
 
-    const data = new FormData();
-    Object.entries({
-      ...formData,
-      event_geolocation: `${location.lat},${location.lng}`, // store as "lat,lng"
-    }).forEach(([key, value]) => {
-      if (key === "event_images" && value.length > 0) {
-        Array.from(value).forEach((file) => data.append("event_images", file));
-      } else {
-        data.append(key, value);
-      }
+  if (!location || isNaN(location.lat) || isNaN(location.lng)) {
+    Swal.fire({
+      icon: "warning",
+      title: "No location selected",
+      text: "Please select a valid location on the map.",
+    });
+    return;
+  }
+
+  const data = new FormData();
+  Object.entries({
+    ...formData,
+    event_geolocation: `${location.lat},${location.lng}`, // store as "lat,lng"
+  }).forEach(([key, value]) => {
+    if (key === "event_images" && value.length > 0) {
+      Array.from(value).forEach((file) => data.append("event_images", file));
+    } else {
+      data.append(key, value);
+    }
+  });
+
+  try {
+    await updateEvent(event_id, data);
+
+    // ✅ SweetAlert2 success popup
+    Swal.fire({
+      icon: "success",
+      title: "Event Updated!",
+      text: "Your event has been updated successfully.",
+      confirmButtonColor: "#F59E0B", 
+      }).then(() => {
+      // Redirect after closing the alert
+      navigate("/dashboard/organizer/event/events");
     });
 
-    try {
-      setMessage({ text: "", type: "" });
-      await updateEvent(event_id, data);
-      setMessage({ text: "✅ Event updated successfully!", type: "success" });
-    } catch (err) {
-      console.error(err);
-      setMessage({ text: "❌ Failed to update event.", type: "error" });
-    }
-  };
+    // Optional: reset form or keep values
+    setFormData(initialForm);
+    setPreviewImages([]);
+    setLocation(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Failed to update event. Please try again.",
+    });
+  }
+};
 
   return (
     <div className="min-h-[calc(100vh-8rem)] bg-gradient-to-br from-blue-50 to-amber-50 py-8 px-4">

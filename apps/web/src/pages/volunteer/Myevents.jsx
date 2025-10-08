@@ -22,41 +22,41 @@ export default function Myevents() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Wait until AuthContext finishes loading
-    if (authLoading) return;
+  if (authLoading) return;
+  if (!user?._id && !user?.user_id) {
+    setLoading(false);
+    return;
+  }
 
-    if (!user?._id && !user?.user_id) {
+  // Set Axios Authorization header locally
+  if (user?.token) {
+    api.defaults.headers.common["Authorization"] = `Bearer ${user.token}`;
+  }
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const userId = user.user_id || user._id;
+      const res = await api.get(`/event/member/${userId}`);
+
+      const eventsWithFullImage = (res.data.events || []).map((event) => ({
+        ...event,
+        event_images: event.event_images?.map(
+          (img) => `${import.meta.env.VITE_SERVER_URL}${img}`
+        ),
+      }));
+
+      setEvents(eventsWithFullImage);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to fetch events");
+    } finally {
       setLoading(false);
-      return;
     }
+  };
 
-    // Wait until axios default Authorization header is set
-    if (!api.defaults.headers.common["Authorization"]) return;
+  fetchEvents();
+}, [user, authLoading]);
 
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const userId = user.user_id || user._id;
-        const res = await api.get(`/event/member/${userId}`);
-
-        // Make full URLs for event images
-        const eventsWithFullImage = (res.data.events || []).map((event) => ({
-          ...event,
-          event_images: event.event_images?.map(
-            (img) => `${import.meta.env.VITE_SERVER_URL}${img}`
-          ),
-        }));
-
-        setEvents(eventsWithFullImage);
-      } catch (err) {
-        setError(err.response?.data?.message || "Failed to fetch events");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, [user, authLoading]);
 
   if (authLoading || loading) {
     return (
