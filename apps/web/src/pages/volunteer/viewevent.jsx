@@ -6,20 +6,34 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin, Users, ArrowLeft } from "lucide-react";
 
 export default function EventDetails() {
-  const { event_id } = useParams(); // get the event_id from URL
-  const { fetchEvent, addMember } = useEvent(); // use your context function
+  const { event_id } = useParams(); // get event_id from URL
+  const { fetchEvent, addMember, getMembers } = useEvent(); // ✅ include getMembers
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [volunteerCount, setVolunteerCount] = useState(0); // ✅ state for joined volunteers
 
   useEffect(() => {
     const fetch_Event = async () => {
       try {
-        const data = await fetchEvent(event_id); // call your context function
-        setEvent(data.event); // set the event data
+        const data = await fetchEvent(event_id);
+        if (data?.event) {
+          setEvent(data.event);
+
+          // ✅ fetch volunteer count
+          try {
+            const membersRes = await getMembers(data.event.event_id);
+            setVolunteerCount(membersRes?.members?.length || 0);
+          } catch (err) {
+            console.error("Failed to fetch volunteer count:", err);
+            setVolunteerCount(0);
+          }
+        } else {
+          setError("Event not found.");
+        }
       } catch (err) {
         setError("Failed to fetch event details.");
       } finally {
@@ -38,6 +52,10 @@ export default function EventDetails() {
     try {
       await addMember(event.event_id, user.user_id);
       alert("Registered successfully!");
+
+      // ✅ update count after registering
+      const membersRes = await getMembers(event.event_id);
+      setVolunteerCount(membersRes?.members?.length || 0);
     } catch (err) {
       alert("Failed to register. Try again later.");
     }
@@ -46,7 +64,7 @@ export default function EventDetails() {
   if (loading)
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -56,10 +74,11 @@ export default function EventDetails() {
         </motion.div>
       </div>
     );
+
   if (error)
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -71,10 +90,11 @@ export default function EventDetails() {
         </motion.div>
       </div>
     );
+
   if (!event)
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -109,7 +129,7 @@ export default function EventDetails() {
         </motion.div>
 
         {/* Event Images */}
-        <motion.div 
+        <motion.div
           className="mb-8 flex justify-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -149,7 +169,7 @@ export default function EventDetails() {
         </motion.div>
 
         {/* Event Info */}
-        <motion.div 
+        <motion.div
           className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -157,8 +177,12 @@ export default function EventDetails() {
         >
           <div className="p-8">
             <div className="flex-1 mb-4">
-              <h1 className="text-3xl font-bold text-blue-900 mb-2">{event.event_name}</h1>
-              <p className="text-gray-600 text-lg leading-relaxed">{event.event_description}</p>
+              <h1 className="text-3xl font-bold text-blue-900 mb-2">
+                {event.event_name}
+              </h1>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                {event.event_description}
+              </p>
             </div>
 
             {/* Event Details Grid */}
@@ -170,7 +194,9 @@ export default function EventDetails() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">Date</p>
-                    <p className="text-blue-900 font-semibold">{event.event_date?.split("T")[0]}</p>
+                    <p className="text-blue-900 font-semibold">
+                      {event.event_date?.split("T")[0]}
+                    </p>
                   </div>
                 </div>
 
@@ -180,7 +206,9 @@ export default function EventDetails() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">Time</p>
-                    <p className="text-yellow-700 font-semibold">{event.event_time}</p>
+                    <p className="text-yellow-700 font-semibold">
+                      {event.event_time}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -192,17 +220,24 @@ export default function EventDetails() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">Venue</p>
-                    <p className="text-green-700 font-semibold">{event.event_venue}</p>
+                    <p className="text-green-700 font-semibold">
+                      {event.event_venue}
+                    </p>
                   </div>
                 </div>
 
+                {/* ✅ Dynamic Volunteer Count */}
                 <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl">
                   <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
                     <Users className="text-purple-700" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Volunteers</p>
-                    <p className="text-purple-700 font-semibold">{event.volunteer_count} / {event.need_count}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Volunteers
+                    </p>
+                    <p className="text-purple-700 font-semibold">
+                      {volunteerCount} / {event.need_count}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -216,8 +251,12 @@ export default function EventDetails() {
                     <MapPin className="text-gray-600" size={16} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Geolocation</p>
-                    <p className="text-gray-800 font-medium">{event.event_geolocation}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Geolocation
+                    </p>
+                    <p className="text-gray-800 font-medium">
+                      {event.event_geolocation}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -225,11 +264,13 @@ export default function EventDetails() {
 
             {/* Status */}
             <div className="mb-6">
-              <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-semibold shadow ${
-                event.event_status
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}>
+              <span
+                className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-semibold shadow ${
+                  event.event_status
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
                 <span className="w-2.5 h-2.5 rounded-full bg-current"></span>
                 {event.event_status ? "Open" : "Closed"}
               </span>

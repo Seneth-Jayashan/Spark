@@ -3,6 +3,7 @@ import { useEvent } from "../contexts/EventContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { CalendarDays, MapPin, Users } from "lucide-react";
 
 export default function Events() {
   const {
@@ -12,6 +13,7 @@ export default function Events() {
     error,
     addMember,
     getEventsByUser,
+    getMembers,
   } = useEvent();
   const { user } = useAuth();
 
@@ -20,6 +22,7 @@ export default function Events() {
   const [dateFilter, setDateFilter] = useState("");
   const [locations, setLocations] = useState([]);
   const [userRegisteredEvents, setUserRegisteredEvents] = useState([]);
+  const [eventsWithVolunteerCount, setEventsWithVolunteerCount] = useState([]);
   const navigate = useNavigate();
 
   // Fetch events on mount
@@ -27,17 +30,37 @@ export default function Events() {
     fetchPublicEvents();
   }, []);
 
-  // Populate unique locations & filter events
+  // Fetch volunteer counts for each event
   useEffect(() => {
-    if (!events) return;
+    const loadVolunteerCounts = async () => {
+      if (!events || events.length === 0) return;
 
-    // Extract unique event venues
-    const uniqueLocations = Array.from(
-      new Set(events.map((e) => e.event_venue))
-    );
-    setLocations(uniqueLocations);
+      const updatedEvents = await Promise.all(
+        events.map(async (event) => {
+          try {
+            const members = await getMembers(event.event_id);
+            return { ...event, volunteer_count: members.members?.length || 0 };
+          } catch (err) {
+            return { ...event, volunteer_count: 0 };
+          }
+        })
+      );
 
-    let filtered = events;
+      setEventsWithVolunteerCount(updatedEvents);
+
+      // Populate unique locations
+      const uniqueLocations = Array.from(
+        new Set(updatedEvents.map((e) => e.event_venue))
+      );
+      setLocations(uniqueLocations);
+    };
+
+    loadVolunteerCounts();
+  }, [events]);
+
+  // Apply filters
+  useEffect(() => {
+    let filtered = eventsWithVolunteerCount;
 
     if (locationFilter) {
       filtered = filtered.filter((e) => e.event_venue === locationFilter);
@@ -50,20 +73,17 @@ export default function Events() {
     }
 
     setFilteredEvents(filtered);
-  }, [events, locationFilter, dateFilter]);
+  }, [eventsWithVolunteerCount, locationFilter, dateFilter]);
 
-  // Fetch user's registered events to show "Registered" state
+  // Fetch user's registered events
   useEffect(() => {
     const fetchUserRegistered = async () => {
-      if (!user?.user_id) {
-        setUserRegisteredEvents([]);
-        return;
-      }
+      if (!user?.user_id) return setUserRegisteredEvents([]);
       try {
         const res = await getEventsByUser(user.user_id);
         const ids = (res?.events || []).map((e) => e.event_id);
         setUserRegisteredEvents(ids);
-      } catch (e) {
+      } catch {
         setUserRegisteredEvents([]);
       }
     };
@@ -79,11 +99,11 @@ export default function Events() {
         title: "Login Required",
         text: "Please login to register for this event!",
         icon: "warning",
-        confirmButtonColor: "#2563EB", // blue-600
+        confirmButtonColor: "#2563EB",
       });
       return;
     }
-    if (user && user.user_role !== "volunteer") {
+    if (user.user_role !== "volunteer") {
       Swal.fire({
         title: "Not Allowed",
         text: "Only volunteers can register for events.",
@@ -97,18 +117,25 @@ export default function Events() {
       setUserRegisteredEvents((prev) =>
         prev.includes(event_id) ? prev : [...prev, event_id]
       );
+      setEventsWithVolunteerCount((prev) =>
+        prev.map((e) =>
+          e.event_id === event_id
+            ? { ...e, volunteer_count: (e.volunteer_count || 0) + 1 }
+            : e
+        )
+      );
       Swal.fire({
         title: "Registered!",
         text: "You have successfully registered for the event.",
         icon: "success",
-        confirmButtonColor: "#2563EB", // blue-600
+        confirmButtonColor: "#2563EB",
       });
     } catch (err) {
       Swal.fire({
         title: "Registration Failed",
         text: "Failed to register. Try again later.",
         icon: "error",
-        confirmButtonColor: "#dc2626", // red-600
+        confirmButtonColor: "#dc2626",
       });
     }
   };
@@ -201,7 +228,7 @@ export default function Events() {
 
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.isArray(filteredEvents) && filteredEvents.length > 0 ? (
+        {filteredEvents.length > 0 ? (
           filteredEvents.map((event) => (
             <div
               key={event.event_id}
@@ -234,11 +261,26 @@ export default function Events() {
 
                 {/* Event Info */}
                 <div className="flex flex-col gap-2 text-sm text-gray-700 mb-4">
-                  <span>📅 Date: {event.event_date?.split("T")[0]}</span>
-                  <span>⏰ Time: {event.event_time}</span>
-                  <span>📍 Venue: {event.event_venue}</span>
-                  <span>👥 Needed: {event.need_count ?? 0}</span>
-                  <span>✅ Joined: {event.volunteer_count ?? 0}</span>
+                  <span className="flex items-center gap-2">
+                    <CalendarDays size={16} className="text-blue-600" />{" "}
+                    {event.event_date?.split("T")[0]}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Users size={16} className="text-green-600" />{" "}
+                    {event.event_time}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <MapPin size={16} className="text-red-600" />{" "}
+                    {event.event_venue}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Users size={16} className="text-gray-600" /> Needed:{" "}
+                    {event.need_count ?? 0}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Users size={16} className="text-gray-800" /> Joined:{" "}
+                    {event.volunteer_count ?? 0}
+                  </span>
                 </div>
 
                 {/* Action Buttons */}

@@ -1,3 +1,4 @@
+// src/pages/dashboard/organizer/event/Events.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -8,19 +9,22 @@ import Chat from "../../../Components/chat";
 
 export default function Events() {
   const { currentOrg } = useOrg();
-  const { fetchEvents, deleteEvent } = useEvent();
+  const { fetchEvents, deleteEvent, getMembers } = useEvent();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // all | active | inactive
+  const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
   const [selectedEventId, setSelectedEventId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
+  const [volunteerCounts, setVolunteerCounts] = useState({});
 
+  // Fetch all events for the organization
   useEffect(() => {
     const getAllEvents = async () => {
       if (!currentOrg?.organization?.org_id) return;
+
       try {
         const allEvents = await fetchEvents();
         const eventsArray = Array.isArray(allEvents)
@@ -30,6 +34,20 @@ export default function Events() {
           (e) => e.event_org === currentOrg.organization.org_id
         );
         setEvents(orgEvents);
+
+        // Fetch volunteer counts for each event
+        const counts = {};
+        await Promise.all(
+          orgEvents.map(async (e) => {
+            try {
+              const members = await getMembers(e.event_id);
+              counts[e.event_id] = members.members?.length || 0;
+            } catch (err) {
+              counts[e.event_id] = 0;
+            }
+          })
+        );
+        setVolunteerCounts(counts);
       } catch (err) {
         console.error("Failed to fetch events:", err);
         setEvents([]);
@@ -39,21 +57,6 @@ export default function Events() {
     };
     getAllEvents();
   }, [currentOrg]);
-
-  const handleDelete = async (event_id) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
-
-    try {
-      await deleteEvent(event_id);
-      setEvents((prev) => prev.filter((e) => e.event_id !== event_id));
-
-      // ✅ Redirect after delete
-      navigate("/dashboard/organizer/event/events");
-    } catch (err) {
-      console.error("Failed to delete event:", err);
-      alert("Error deleting event. Try again.");
-    }
-  };
 
   const toggleChat = (eventId) => {
     setSelectedEventId(selectedEventId === eventId ? null : eventId);
@@ -210,7 +213,8 @@ export default function Events() {
                       <Users size={16} className="text-indigo-500" />
                       <span>
                         Volunteers Needed: {event.need_count ?? 0} <br />
-                        Volunteers Joined: {event.volunteer_count ?? 0}
+                        Volunteers Joined:{" "}
+                        {volunteerCounts[event.event_id] ?? 0}
                       </span>
                     </div>
                   </div>
@@ -218,7 +222,7 @@ export default function Events() {
                   {/* Action Buttons */}
                   <div
                     className="flex justify-between items-center border-t border-gray-100 pt-4"
-                    onClick={(e) => e.stopPropagation()} // prevent parent click
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <button
                       onClick={() =>
@@ -263,32 +267,13 @@ export default function Events() {
 
       {/* Pop-out Chat Modal */}
       {selectedEventId && (
-        <motion.div
-          className="fixed inset-0 z-50 overflow-hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* Backdrop */}
+        <motion.div className="fixed inset-0 z-50 overflow-hidden">
           <motion.div
             className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
             onClick={closeChat}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
           />
-
-          {/* Chat Container */}
-          <motion.div
-            className="absolute right-0 top-0 h-full w-full md:w-1/2 lg:w-2/5 bg-white shadow-2xl"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          >
+          <motion.div className="absolute right-0 top-0 h-full w-full md:w-1/2 lg:w-2/5 bg-white shadow-2xl">
             <div className="flex flex-col h-full">
-              {/* Chat Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-900 to-blue-800 text-white">
                 <div>
                   <h3 className="text-xl font-bold">Event Chat</h3>
@@ -299,17 +284,13 @@ export default function Events() {
                     }
                   </p>
                 </div>
-                <motion.button
+                <button
                   onClick={closeChat}
-                  className="p-3 hover:bg-white/20 rounded-2xl transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  className="p-3 hover:bg-white/20 rounded-2xl"
                 >
                   <X className="w-6 h-6" />
-                </motion.button>
+                </button>
               </div>
-
-              {/* Chat Body */}
               <div className="flex-1 overflow-hidden bg-gray-50">
                 <Chat
                   eventId={selectedEventId}
@@ -321,6 +302,7 @@ export default function Events() {
           </motion.div>
         </motion.div>
       )}
+
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -345,8 +327,6 @@ export default function Events() {
                     await deleteEvent(eventToDelete);
                     setDeleteModalOpen(false);
                     setEventToDelete(null);
-
-                    // Redirect + refresh
                     navigate("/dashboard/organizer/event/events", {
                       replace: true,
                     });

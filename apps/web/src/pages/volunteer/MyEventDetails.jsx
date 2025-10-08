@@ -17,7 +17,7 @@ import { motion } from "framer-motion";
 
 export default function MyEventDetails() {
   const { event_id } = useParams();
-  const { fetchEvent, getEventsByUser } = useEvent();
+  const { fetchEvent, getEventsByUser, getMembers } = useEvent(); // ✅ include getMembers
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -27,6 +27,7 @@ export default function MyEventDetails() {
   const [events, setEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState(null);
   const [expandedEvent, setExpandedEvent] = useState(null);
+  const [volunteerCount, setVolunteerCount] = useState(0); // ✅ new state
   const didFetch = useRef(false);
 
   useEffect(() => {
@@ -46,6 +47,15 @@ export default function MyEventDetails() {
 
         if (eventRes?.event) {
           setEvent(eventRes.event);
+
+          // ✅ Fetch volunteer count for this event
+          try {
+            const membersRes = await getMembers(eventRes.event.event_id);
+            setVolunteerCount(membersRes?.members?.length || 0);
+          } catch (err) {
+            console.error("Failed to fetch volunteer count:", err);
+            setVolunteerCount(0);
+          }
         } else if (eventRes) {
           setEvent(eventRes);
         } else {
@@ -268,8 +278,9 @@ export default function MyEventDetails() {
                     <p className="text-sm font-medium text-gray-600">
                       Volunteers
                     </p>
+                    {/* ✅ Dynamic volunteer count */}
                     <p className="text-purple-700 font-semibold">
-                      {event.volunteer_count} / {event.need_count}
+                      {volunteerCount} / {event.need_count}
                     </p>
                   </div>
                 </div>
