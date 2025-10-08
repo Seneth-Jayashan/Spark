@@ -5,13 +5,14 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 export default function Events() {
-  const { events, fetchPublicEvents, loading, error, addMember } = useEvent();
+  const { events, fetchPublicEvents, loading, error, addMember, getEventsByUser } = useEvent();
   const { user } = useAuth();
 
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [locationFilter, setLocationFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [locations, setLocations] = useState([]);
+  const [userRegisteredEvents, setUserRegisteredEvents] = useState([]);
   const navigate = useNavigate();
 
   // Fetch events on mount
@@ -44,6 +45,26 @@ export default function Events() {
     setFilteredEvents(filtered);
   }, [events, locationFilter, dateFilter]);
 
+  // Fetch user's registered events to show "Registered" state
+  useEffect(() => {
+    const fetchUserRegistered = async () => {
+      if (!user?.user_id) {
+        setUserRegisteredEvents([]);
+        return;
+      }
+      try {
+        const res = await getEventsByUser(user.user_id);
+        const ids = (res?.events || []).map((e) => e.event_id);
+        setUserRegisteredEvents(ids);
+      } catch (e) {
+        setUserRegisteredEvents([]);
+      }
+    };
+    fetchUserRegistered();
+  }, [user?.user_id]);
+
+  const isUserRegistered = (event_id) => userRegisteredEvents.includes(event_id);
+
   const handleRegister = async (event_id) => {
     if (!user) {
       Swal.fire({
@@ -65,6 +86,7 @@ export default function Events() {
     }
     try {
       await addMember(event_id, user.user_id);
+      setUserRegisteredEvents((prev) => (prev.includes(event_id) ? prev : [...prev, event_id]));
       Swal.fire({
         title: "Registered!",
         text: "You have successfully registered for the event.",
@@ -190,41 +212,63 @@ export default function Events() {
                   <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-md">📍 {event.event_venue}</span>
                 </div>
 
-                {user?.user_role === "volunteer" ? (
+                <div className="mt-auto flex items-center gap-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleRegister(event.event_id);
+                      navigate(`/events/${event.event_id}`);
                     }}
-                    className="mt-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                    className="flex-1 border border-blue-600 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                   >
-                    Register
+                    View Details
                   </button>
-                ) : (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!user) {
-                        Swal.fire({
-                          title: "Login Required",
-                          text: "Please login as a volunteer to register.",
-                          icon: "warning",
-                          confirmButtonColor: "#2563EB",
-                        });
-                      } else {
-                        Swal.fire({
-                          title: "Volunteer Only",
-                          text: "Only volunteers can register for events.",
-                          icon: "info",
-                          confirmButtonColor: "#2563EB",
-                        });
-                      }
-                    }}
-                    className="mt-auto bg-gray-200 text-gray-600 px-4 py-2 rounded-lg cursor-not-allowed"
-                  >
-                    Volunteer Only
-                  </button>
-                )}
+
+                  {user?.user_role === "volunteer" ? (
+                    isUserRegistered(event.event_id) ? (
+                      <button
+                        disabled
+                        className="flex-1 bg-gray-200 text-gray-600 px-4 py-2 rounded-lg cursor-not-allowed"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Registered
+                      </button>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRegister(event.event_id);
+                        }}
+                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                      >
+                        Register
+                      </button>
+                    )
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!user) {
+                          Swal.fire({
+                            title: "Login Required",
+                            text: "Please login as a volunteer to register.",
+                            icon: "warning",
+                            confirmButtonColor: "#2563EB",
+                          });
+                        } else {
+                          Swal.fire({
+                            title: "Volunteer Only",
+                            text: "Only volunteers can register for events.",
+                            icon: "info",
+                            confirmButtonColor: "#2563EB",
+                          });
+                        }
+                      }}
+                      className="flex-1 bg-gray-200 text-gray-600 px-4 py-2 rounded-lg cursor-not-allowed"
+                    >
+                      Volunteer Only
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))
