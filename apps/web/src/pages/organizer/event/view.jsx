@@ -103,6 +103,7 @@ export default function ViewEvent() {
     loadVolunteerDetails();
   }, [volunteers]);
 
+  
   const bulkUpdateParticipation = (newStatus) => {
     setParticipationStatus((prev) => {
       const updated = { ...prev };
@@ -113,7 +114,7 @@ export default function ViewEvent() {
     });
   };
 
-
+  //parse volunteers participation status
 
   if (loading)
     return (
