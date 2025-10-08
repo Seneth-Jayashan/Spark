@@ -2,7 +2,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEvent } from "../../contexts/EventContext";
-import { MessageCircle, X, Calendar, Clock, MapPin, Users, ArrowLeft } from "lucide-react";
+import {
+  MessageCircle,
+  X,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  ArrowLeft,
+} from "lucide-react";
 import EventChat from "../../Components/chat";
 import { useAuth } from "../../contexts/AuthContext";
 import { motion } from "framer-motion";
@@ -21,7 +29,6 @@ export default function MyEventDetails() {
   const [expandedEvent, setExpandedEvent] = useState(null);
   const didFetch = useRef(false);
 
-
   useEffect(() => {
     if (!user?.user_id) return;
     if (didFetch.current) return;
@@ -34,7 +41,7 @@ export default function MyEventDetails() {
 
         const [eventRes, userEventsRes] = await Promise.all([
           fetchEvent(event_id),
-          getEventsByUser(user.user_id)
+          getEventsByUser(user.user_id),
         ]);
 
         if (eventRes?.event) {
@@ -69,11 +76,10 @@ export default function MyEventDetails() {
     setSelectedEventId(null);
   };
 
-
   if (loading && !event)
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -87,7 +93,7 @@ export default function MyEventDetails() {
   if (error)
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -103,7 +109,7 @@ export default function MyEventDetails() {
   if (!event)
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -119,7 +125,6 @@ export default function MyEventDetails() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 py-8 px-4">
       <div className="max-w-4xl mx-auto relative">
-        
         {/* Header */}
         <motion.div
           className="text-center mb-8"
@@ -134,53 +139,53 @@ export default function MyEventDetails() {
             <h1 className="text-2xl font-bold text-blue-900">Event Details</h1>
           </div>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            View your registered event details and connect with other participants.
+            View your registered event details and connect with other
+            participants.
           </p>
         </motion.div>
 
-{/* Event Images */}
-<motion.div 
-  className="mb-8 flex justify-center"
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.6, delay: 0.2 }}
->
-  {event.event_images?.length > 0 ? (
-    <div
-      className={`grid gap-6 w-full ${
-        event.event_images.length === 1
-          ? "grid-cols-1"
-          : "grid-cols-1 md:grid-cols-2"
-      }`}
-    >
-      {event.event_images.map((img, idx) => (
+        {/* Event Images */}
         <motion.div
-          key={idx}
-          className="flex justify-center"
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.3 }}
+          className="mb-8 flex justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <img
-            src={`${import.meta.env.VITE_SERVER_URL}${img}`}
-            alt={`${event.event_name} - ${idx + 1}`}
-            className="w-full max-w-5xl h-80 md:h-96 object-cover rounded-2xl shadow-xl"
-          />
+          {event.event_images?.length > 0 ? (
+            <div
+              className={`grid gap-6 w-full ${
+                event.event_images.length === 1
+                  ? "grid-cols-1"
+                  : "grid-cols-1 md:grid-cols-2"
+              }`}
+            >
+              {event.event_images.map((img, idx) => (
+                <motion.div
+                  key={idx}
+                  className="flex justify-center"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <img
+                    src={`${import.meta.env.VITE_SERVER_URL}${img}`}
+                    alt={`${event.event_name} - ${idx + 1}`}
+                    className="w-full max-w-5xl h-80 md:h-96 object-cover rounded-2xl shadow-xl"
+                  />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center rounded-2xl shadow-lg w-full max-w-4xl">
+              <div className="text-center">
+                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 font-medium">No images available</p>
+              </div>
+            </div>
+          )}
         </motion.div>
-      ))}
-    </div>
-  ) : (
-    <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center rounded-2xl shadow-lg w-full max-w-4xl">
-      <div className="text-center">
-        <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-        <p className="text-gray-500 font-medium">No images available</p>
-      </div>
-    </div>
-  )}
-</motion.div>
-
 
         {/* Event Info */}
-        <motion.div 
+        <motion.div
           className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -190,8 +195,12 @@ export default function MyEventDetails() {
             {/* Header with Title and Chat Button */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-blue-900 mb-2">{event.event_name}</h1>
-                <p className="text-gray-600 text-lg leading-relaxed">{event.event_description}</p>
+                <h1 className="text-3xl font-bold text-blue-900 mb-2">
+                  {event.event_name}
+                </h1>
+                <p className="text-gray-600 text-lg leading-relaxed">
+                  {event.event_description}
+                </p>
               </div>
 
               {/* Chat Button */}
@@ -219,7 +228,9 @@ export default function MyEventDetails() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">Date</p>
-                    <p className="text-blue-900 font-semibold">{event.event_date?.split("T")[0]}</p>
+                    <p className="text-blue-900 font-semibold">
+                      {event.event_date?.split("T")[0]}
+                    </p>
                   </div>
                 </div>
 
@@ -229,7 +240,9 @@ export default function MyEventDetails() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">Time</p>
-                    <p className="text-yellow-700 font-semibold">{event.event_time}</p>
+                    <p className="text-yellow-700 font-semibold">
+                      {event.event_time}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -241,7 +254,9 @@ export default function MyEventDetails() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">Venue</p>
-                    <p className="text-green-700 font-semibold">{event.event_venue}</p>
+                    <p className="text-green-700 font-semibold">
+                      {event.event_venue}
+                    </p>
                   </div>
                 </div>
 
@@ -250,8 +265,12 @@ export default function MyEventDetails() {
                     <Users className="text-purple-700" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Volunteers</p>
-                    <p className="text-purple-700 font-semibold">{event.volunteer_count} / {event.need_count}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Volunteers
+                    </p>
+                    <p className="text-purple-700 font-semibold">
+                      {event.volunteer_count} / {event.need_count}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -265,8 +284,12 @@ export default function MyEventDetails() {
                     <MapPin className="text-gray-600" size={16} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Geolocation</p>
-                    <p className="text-gray-800 font-medium">{event.event_geolocation}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Geolocation
+                    </p>
+                    <p className="text-gray-800 font-medium">
+                      {event.event_geolocation}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -287,7 +310,7 @@ export default function MyEventDetails() {
 
         {/* Pop-out Chat Modal */}
         {selectedEventId && (
-          <motion.div 
+          <motion.div
             className="fixed inset-0 z-50 overflow-hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -295,16 +318,16 @@ export default function MyEventDetails() {
             transition={{ duration: 0.3 }}
           >
             {/* Backdrop */}
-            <motion.div 
+            <motion.div
               className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
               onClick={closeChat}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
-            
+
             {/* Chat Container */}
-            <motion.div 
+            <motion.div
               className="absolute right-0 top-0 h-full w-full md:w-1/2 lg:w-2/5 bg-white shadow-2xl"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -317,7 +340,10 @@ export default function MyEventDetails() {
                   <div>
                     <h3 className="text-xl font-bold">Event Chat</h3>
                     <p className="text-blue-200 text-sm">
-                      {events.find(e => e.event_id === selectedEventId)?.event_name}
+                      {
+                        events.find((e) => e.event_id === selectedEventId)
+                          ?.event_name
+                      }
                     </p>
                   </div>
                   <motion.button
