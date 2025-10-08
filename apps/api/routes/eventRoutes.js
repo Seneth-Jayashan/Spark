@@ -43,6 +43,10 @@ router.get('/:event_id/members', eventController.getMembersByEventId);
 
 // Get event from user ID
 router.get('/member/:user_id', eventController.getEventsByUserId);
+// Get upcoming events for a user
+router.get('/member/:user_id/upcoming', eventController.getUserUpcomingEvents);
+// Get history events for a user
+router.get('/member/:user_id/history', eventController.getUserHistoryEvents);
 
 
 // Remove member from an event
