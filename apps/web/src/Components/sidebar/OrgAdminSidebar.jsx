@@ -11,10 +11,12 @@ import {
 import { useOrg } from "../../contexts/OrgContext";
 import Logo from '../../assets/images/Logo.png'; 
 
+
 const OrgAdminSidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const { currentOrg, loading, fetchLoggedUserOrg  } = useOrg();
   const navigate = useNavigate();
+  
 
   useEffect(() => {
   if (!currentOrg && !loading) {
