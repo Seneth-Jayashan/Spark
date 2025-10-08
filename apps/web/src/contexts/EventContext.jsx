@@ -1,13 +1,13 @@
+// src/contexts/EventContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import api from "../api/axios";
 
 const EventContext = createContext();
-
 export const useEvent = () => useContext(EventContext);
 
 export const EventProvider = ({ children }) => {
-  const [events, setEvents] = useState([]);           // All events
-  const [currentEvent, setCurrentEvent] = useState(null); // Selected event
+  const [events, setEvents] = useState([]);           
+  const [currentEvent, setCurrentEvent] = useState(null); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -59,13 +59,13 @@ export const EventProvider = ({ children }) => {
   };
 
   // ----------------------------
-  // Fetch all public events (no auth required)
+  // Fetch all public events
   // ----------------------------
   const fetchPublicEvents = async () => {
     try {
       setLoading(true);
       setError("");
-      const res = await api.get("/event/public"); // Make sure your backend supports this endpoint
+      const res = await api.get("/event/public");
       setEvents(res.data.events || []);
       return res.data;
     } catch (err) {
@@ -77,7 +77,6 @@ export const EventProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
 
   // ----------------------------
   // Create a new event
@@ -109,7 +108,6 @@ export const EventProvider = ({ children }) => {
       const res = await api.put(`/event/${event_id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       setCurrentEvent(res.data);
       return res.data;
     } catch (err) {
@@ -240,6 +238,39 @@ export const EventProvider = ({ children }) => {
     }
   };
 
+  // ----------------------------
+  // Participation
+  // ----------------------------
+  const updateParticipation = async (eventId, userId, status) => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await api.post("/participation/update", { eventId, userId, status });
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Failed to update participation");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getParticipationForEvent = async (eventId) => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await api.get(`/participation/event/${eventId}`); // backend should support this
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Failed to fetch participation");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <EventContext.Provider
       value={{
@@ -249,6 +280,7 @@ export const EventProvider = ({ children }) => {
         error,
         fetchEvents,
         fetchEvent,
+        fetchPublicEvents,
         createEvent,
         updateEvent,
         deleteEvent,
@@ -258,7 +290,8 @@ export const EventProvider = ({ children }) => {
         removeAllMembers,
         getMembers,
         getEventsByUser,
-        fetchPublicEvents
+        updateParticipation,
+        getParticipationForEvent,
       }}
     >
       {children}
