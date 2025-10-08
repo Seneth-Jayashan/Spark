@@ -82,9 +82,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ---- RESET PASSWORD ----
-  const resetPassword = async (token, newPassword) => {
+  const resetPassword = async (newPassword) => {
     try {
       setError(null);
+      const token = sessionStorage.getItem("accessToken");
       const res = await api.post(`/auth/reset-password/${token}`, { password: newPassword });
       return res.data; // { message: "Password reset successful" }
     } catch (err) {

@@ -93,7 +93,7 @@ export default function Profile() {
     }
     try {
       setLoading(true);
-      await resetPassword(user?.resetToken, passwordData.newPassword); // assuming resetToken is available
+      await resetPassword(passwordData.newPassword); 
       Swal.fire({
         icon: "success",
         title: "Password Changed!",
