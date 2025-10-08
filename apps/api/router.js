@@ -5,6 +5,8 @@ const organizationRoutes = require('./routes/orgRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const contactRoutes = require('./routes/contactroute');
 const chatRoutes = require('./routes/chatRoute');
+const VolunteerParticipationRoutes = require('./routes/VolunteerParticipation');
+
 
 const router = Router();
 
@@ -13,6 +15,8 @@ router.use('/organization', organizationRoutes);
 router.use('/event', eventRoutes);
 router.use('/contact', contactRoutes);
 router.use('/chat', chatRoutes);
+router.use('/participation', VolunteerParticipationRoutes);
+
 
 
 module.exports = router;
