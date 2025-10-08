@@ -1,6 +1,7 @@
-// LogoutPage.jsx
+// src/pages/LogoutPage.jsx
 import React, { useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import { AuthContext } from "../contexts/AuthContext";
 
 export default function LogoutPage() {
@@ -9,8 +10,19 @@ export default function LogoutPage() {
 
   useEffect(() => {
     const doLogout = async () => {
-      await logout();       // call context logout
-      navigate("/login");   // redirect to login
+      await logout();
+
+      Swal.fire({
+        title: "Logged Out!",
+        text: "You have been successfully logged out.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+        background: "#f9fafb",
+        color: "#111827",
+      }).then(() => {
+        navigate("/login");
+      });
     };
 
     doLogout();
