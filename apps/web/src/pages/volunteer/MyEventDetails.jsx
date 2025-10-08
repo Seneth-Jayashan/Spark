@@ -29,7 +29,6 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-
 export default function MyEventDetails() {
   const { event_id } = useParams();
   const { fetchEvent, getEventsByUser, getMembers } = useEvent(); // ✅ include getMembers
@@ -304,63 +303,67 @@ export default function MyEventDetails() {
 
             {/* Geolocation */}
             {event.event_geolocation &&
-                          (() => {
-                            // Determine location
-                            let loc = { lat: 6.9271, lng: 79.8612 }; // default Colombo
-                            if (typeof event.event_geolocation === "string") {
-                              const [latStr, lngStr] = event.event_geolocation.split(",");
-                              const lat = parseFloat(latStr);
-                              const lng = parseFloat(lngStr);
-                              if (!isNaN(lat) && !isNaN(lng)) loc = { lat, lng };
-                            } else if (
-                              typeof event.event_geolocation === "object" &&
-                              event.event_geolocation.lat &&
-                              event.event_geolocation.lng
-                            ) {
-                              loc = {
-                                lat: parseFloat(event.event_geolocation.lat),
-                                lng: parseFloat(event.event_geolocation.lng),
-                              };
-                            }
-            
-                            return (
-                              <div className="mb-6 bg-gray-50 rounded-2xl p-4">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <MapPin className="text-gray-600" size={16} />
-                                  </div>
-                                  <p className="text-sm font-medium text-gray-600">
-                                    Geolocation
-                                  </p>
-                                </div>
-            
-                                <div className="h-64 w-full rounded-xl overflow-hidden border border-gray-200">
-                                  <MapContainer
-                                    center={[loc.lat, loc.lng]}
-                                    zoom={13}
-                                    scrollWheelZoom={false}
-                                    dragging={false}
-                                    doubleClickZoom={false}
-                                    zoomControl={false}
-                                    className="w-full h-full rounded-xl"
-                                  >
-                                    <TileLayer
-                                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                                    />
-                                    <Marker position={[loc.lat, loc.lng]}>
-                                      <Popup>{event.event_venue || "Event Location"}</Popup>
-                                    </Marker>
-                                  </MapContainer>
-                                </div>
-            
-                                <div className="mt-3 text-sm text-gray-600 flex items-center gap-2">
-                                  📍 <span>Lat: {loc.lat}</span> |{" "}
-                                  <span>Lng: {loc.lng}</span>
-                                </div>
-                              </div>
-                            );
-                          })()}
+              (() => {
+                // Determine location
+                let loc = { lat: 6.9271, lng: 79.8612 }; // default Colombo
+                if (typeof event.event_geolocation === "string") {
+                  const [latStr, lngStr] = event.event_geolocation.split(",");
+                  const lat = parseFloat(latStr);
+                  const lng = parseFloat(lngStr);
+                  if (!isNaN(lat) && !isNaN(lng)) loc = { lat, lng };
+                } else if (
+                  typeof event.event_geolocation === "object" &&
+                  event.event_geolocation.lat &&
+                  event.event_geolocation.lng
+                ) {
+                  loc = {
+                    lat: parseFloat(event.event_geolocation.lat),
+                    lng: parseFloat(event.event_geolocation.lng),
+                  };
+                }
+
+                return (
+                  <div className="mb-6 bg-gray-50 rounded-2xl p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <MapPin className="text-gray-600" size={16} />
+                      </div>
+                      <p className="text-sm font-medium text-gray-600">
+                        Geolocation
+                      </p>
+                    </div>
+
+                    <div className="relative h-64 w-full rounded-xl overflow-hidden border border-gray-200">
+                      <div className="absolute inset-0 z-0">
+                        <MapContainer
+                          center={[loc.lat, loc.lng]}
+                          zoom={13}
+                          scrollWheelZoom={false}
+                          dragging={false}
+                          doubleClickZoom={false}
+                          zoomControl={false}
+                          className="w-full h-full rounded-xl"
+                        >
+                          <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                          />
+                          <Marker position={[loc.lat, loc.lng]}>
+                            <Popup>
+                              {event.event_venue || "Event Location"}
+                            </Popup>
+                          </Marker>
+                        </MapContainer>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 text-sm text-gray-600 flex items-center gap-2">
+                      📍 <span>Lat: {loc.lat}</span> |{" "}
+                      <span>Lng: {loc.lng}</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
             {/* Back Button */}
             <motion.button
