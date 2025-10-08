@@ -100,17 +100,9 @@ export default function CreateEvent() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 md:p-10 text-gray-800"
         >
-          <div className="mb-8">
-            <div className="inline-flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-200">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                <span className="text-blue-900 font-bold">+</span>
-              </div>
-              <h2 className="text-2xl md:text-3xl font-extrabold tracking-wide text-gray-900">Create Event</h2>
-            </div>
-            <p className="text-gray-600 mt-3">
-              Fill in the details below to publish a new volunteer opportunity.
-            </p>
-          </div>
+          <h2 className="text-3xl font-extrabold mb-8 text-center tracking-wide text-gray-900">
+            Create <span className="text-blue-500">Event</span>
+          </h2>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <input
@@ -119,7 +111,7 @@ export default function CreateEvent() {
               value={formData.event_name}
               onChange={handleChange}
               placeholder="Event Name"
-              className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition-all"
+              className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition"
               required
             />
 
@@ -129,17 +121,17 @@ export default function CreateEvent() {
               onChange={handleChange}
               placeholder="Event Description"
               rows={4}
-              className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition-all"
+              className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition"
               required
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <input
                 type="date"
                 name="event_date"
                 value={formData.event_date}
                 onChange={handleChange}
-                className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition-all"
+                className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition"
                 required
               />
               <input
@@ -147,19 +139,19 @@ export default function CreateEvent() {
                 name="event_time"
                 value={formData.event_time}
                 onChange={handleChange}
-                className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition-all"
+                className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition"
                 required
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <input
                 type="text"
                 name="event_venue"
                 value={formData.event_venue}
                 onChange={handleChange}
                 placeholder="Event Venue"
-                className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition-all"
+                className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition"
                 required
               />
 
@@ -170,7 +162,7 @@ export default function CreateEvent() {
                 onChange={handleChange}
                 placeholder="Volunteers Needed"
                 min="1"
-                className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition-all"
+                className="p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition"
                 required
               />
             </div>
@@ -178,37 +170,37 @@ export default function CreateEvent() {
             <div className="border-2 border-gray-200 rounded-2xl overflow-hidden">
               <MapPicker onLocationSelect={setLocation} />
             </div>
-            {location && (
-              <p className="text-sm text-gray-600 mt-2">
-                📍 Selected: {location.lat}, {location.lng}
-              </p>
-            )}
+          {location && (
+            <p className="text-sm text-gray-600 mt-2">
+              📍 Selected: {location.lat}, {location.lng}
+            </p>
+          )}
 
             <div>
               <label className="flex flex-col items-center justify-center w-44 h-36 bg-gray-50 rounded-2xl cursor-pointer border-2 border-dashed border-gray-300 hover:border-blue-900/50 overflow-hidden transition-colors">
-                {previewImages.length > 0 ? (
+              {previewImages.length > 0 ? (
                   <div className="flex flex-wrap gap-2 p-2 max-h-32 overflow-y-auto">
-                    {previewImages.map((src, i) => (
-                      <img
-                        key={i}
-                        src={src}
-                        alt={`preview-${i}`}
-                        className="w-16 h-16 object-cover rounded"
-                      />
-                    ))}
+                  {previewImages.map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt={`preview-${i}`}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                  ))}
                   </div>
-                ) : (
-                  <span className="text-gray-500 text-center">Upload Images</span>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  name="event_images"
-                  accept="image/*"
-                  onChange={handleChange}
-                  multiple
-                  className="hidden"
-                />
+              ) : (
+                <span className="text-gray-500 text-center">Upload Images</span>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                name="event_images"
+                accept="image/*"
+                onChange={handleChange}
+                multiple
+                className="hidden"
+              />
               </label>
               <p className="text-gray-500 text-sm mt-2">
                 Upload one or more images for the event.
