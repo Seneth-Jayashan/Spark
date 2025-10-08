@@ -219,45 +219,76 @@ export default function Events() {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Action Buttons (Creative + Motion Layout) */}
                   <div
-                    className="flex justify-between items-center border-t border-gray-100 pt-4"
+                    className="flex flex-wrap justify-between items-center border-t border-gray-100 pt-5 mt-5 gap-4"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button
-                      onClick={() =>
-                        navigate(
-                          `/dashboard/organizer/event/update/${event.event_id}`
-                        )
-                      }
-                      className="flex items-center gap-2 text-blue-900 hover:opacity-90 font-medium text-sm transition"
-                    >
-                      <Edit3 size={16} /> Edit
-                    </button>
+                    {/* Left side: Edit + Delete */}
+                    <div className="flex gap-3">
+                      <motion.button
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() =>
+                          navigate(
+                            `/dashboard/organizer/event/update/${event.event_id}`
+                          )
+                        }
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-900 text-blue-900 rounded-xl text-sm font-medium shadow-sm hover:bg-blue-50 transition"
+                      >
+                        <Edit3 size={16} /> Edit
+                      </motion.button>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEventToDelete(event.event_id);
-                        setDeleteModalOpen(true);
-                      }}
-                      className="px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors flex items-center gap-2"
-                    >
-                      <Trash2 size={16} /> Delete
-                    </button>
+                      <motion.button
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEventToDelete(event.event_id);
+                          setDeleteModalOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl text-sm font-medium shadow-md hover:shadow-lg hover:from-red-700 hover:to-red-600 transition"
+                      >
+                        <Trash2 size={16} /> Delete
+                      </motion.button>
+                    </div>
 
-                    <button
-                      onClick={() => toggleChat(event.event_id)}
-                      className={`px-3 py-1 rounded-lg text-sm transition-colors font-medium ${
-                        selectedEventId === event.event_id
-                          ? "bg-gray-600 text-white hover:bg-gray-700"
-                          : "bg-blue-900 text-white hover:bg-blue-900/95"
-                      }`}
-                    >
-                      {selectedEventId === event.event_id
-                        ? "Close Chat"
-                        : "Chat"}
-                    </button>
+                    {/* Right side: View Details + Chat */}
+                    <div className="flex gap-3">
+                      <motion.button
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() =>
+                          navigate(
+                            `/dashboard/organizer/event/view/${event.event_id}`
+                          )
+                        }
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-xl text-sm font-medium shadow-md hover:shadow-lg hover:from-blue-800 hover:to-blue-600 transition"
+                      >
+                        <CalendarDays size={16} /> View Details
+                      </motion.button>
+
+                      <motion.button
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => toggleChat(event.event_id)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-md transition ${
+                          selectedEventId === event.event_id
+                            ? "bg-gray-700 text-white hover:bg-gray-800"
+                            : "bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-700 hover:to-green-600"
+                        }`}
+                      >
+                        {selectedEventId === event.event_id ? (
+                          <>
+                            <X size={16} /> Close Chat
+                          </>
+                        ) : (
+                          <>
+                            <Users size={16} /> Chat
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
                   </div>
                 </div>
               </motion.div>
