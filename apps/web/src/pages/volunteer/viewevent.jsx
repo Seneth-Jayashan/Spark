@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useEvent } from "../contexts/EventContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useEvent } from "../../contexts/EventContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function EventDetails() {
   const { event_id } = useParams(); // get the event_id from URL
