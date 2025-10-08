@@ -2,6 +2,34 @@ const Event = require('../models/event');
 const Member = require('../models/eventMember');
 const Organization = require('../models/organization');
 
+// Helper: combine event_date and event_time into a JS Date for comparison
+function getEventEndDateTime(event) {
+    const date = new Date(event.event_date);
+    if (!event.event_time) return date;
+    const [hoursStr, minutesStr] = String(event.event_time).split(":");
+    const hours = parseInt(hoursStr || '0', 10);
+    const minutes = parseInt(minutesStr || '0', 10);
+    const combined = new Date(date);
+    combined.setHours(hours, minutes, 0, 0);
+    return combined;
+}
+
+// Helper: mark past events as inactive (does not auto-activate anything)
+async function expirePastEvents() {
+    const now = new Date();
+    const events = await Event.find({ event_status: true });
+    const expiredIds = [];
+    for (const ev of events) {
+        const endAt = getEventEndDateTime(ev);
+        if (endAt < now) {
+            expiredIds.push(ev.event_id);
+        }
+    }
+    if (expiredIds.length > 0) {
+        await Event.updateMany({ event_id: { $in: expiredIds } }, { $set: { event_status: false } });
+    }
+}
+
 exports.getAllEvents = async (req, res) => {
     try {
         const events = await Event.find();
@@ -18,6 +46,7 @@ exports.getAllEvents = async (req, res) => {
 
 exports.getAllPublicEvents = async (req, res) => {
     try {
+        await expirePastEvents();
         const events = await Event.find({event_status:true});
 
         if (!events || events.length === 0) {
@@ -246,6 +275,51 @@ exports.getEventsByUserId = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+
+// Get upcoming events for a given user (registered), excluding expired and inactive
+exports.getUserUpcomingEvents = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+
+        const userMembers = await Member.find({ user_id });
+        if (!userMembers || userMembers.length === 0) {
+            return res.status(200).json({ message: 'No registered events', events: [] });
+        }
+
+        await expirePastEvents();
+
+        const eventIds = userMembers.map((m) => m.event_id);
+        const allEvents = await Event.find({ event_id: { $in: eventIds } });
+        const now = new Date();
+        const events = allEvents.filter((ev) => ev.event_status === true && getEventEndDateTime(ev) >= now);
+
+        return res.status(200).json({ message: `${events.length} upcoming events found`, events });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// Get past (history) events for a given user (registered), includes expired regardless of current status
+exports.getUserHistoryEvents = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+
+        const userMembers = await Member.find({ user_id });
+        if (!userMembers || userMembers.length === 0) {
+            return res.status(200).json({ message: 'No history events', events: [] });
+        }
+
+        const eventIds = userMembers.map((m) => m.event_id);
+        const allEvents = await Event.find({ event_id: { $in: eventIds } });
+        const now = new Date();
+        const events = allEvents.filter((ev) => getEventEndDateTime(ev) < now);
+
+        return res.status(200).json({ message: `${events.length} history events found`, events });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 };
 
 
