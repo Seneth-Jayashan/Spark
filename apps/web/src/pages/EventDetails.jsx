@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEvent } from "../contexts/EventContext";
+import { motion } from "framer-motion";
+import { Calendar, Clock, MapPin, Users, ArrowLeft } from "lucide-react";
 
 export default function EventDetails() {
   const { event_id } = useParams();
@@ -35,76 +37,196 @@ export default function EventDetails() {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center mt-32">
-        Loading event...
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="w-16 h-16 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-blue-900 font-medium">Loading event...</p>
+        </motion.div>
       </div>
     );
 
   if (error)
     return (
-      <div className="min-h-screen flex items-center justify-center text-red-500 mt-32">
-        {error}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Calendar className="w-8 h-8 text-red-600" />
+          </div>
+          <p className="text-red-600 font-medium text-lg">{error}</p>
+        </motion.div>
       </div>
     );
 
   if (!event)
     return (
-      <div className="min-h-screen flex items-center justify-center mt-32">
-        Event not found
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Calendar className="w-8 h-8 text-gray-600" />
+          </div>
+          <p className="text-gray-600 font-medium text-lg">Event not found</p>
+        </motion.div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 mt-32">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 py-8 px-4 mt-28">
       <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-lg mb-4">
+            <div className="w-10 h-10 bg-[#FFB238] rounded-xl flex items-center justify-center">
+              <Calendar className="text-blue-900 text-lg" />
+            </div>
+            <h1 className="text-2xl font-bold text-blue-900">Event Details</h1>
+          </div>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Discover event information and plan your participation.
+          </p>
+        </motion.div>
         {/* Images */}
-        <div className="mb-6">
+        <motion.div 
+          className="mb-8 flex justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
           {event.event_images?.length ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              className={`grid gap-6 w-full ${
+                event.event_images.length === 1
+                  ? "grid-cols-1"
+                  : "grid-cols-1 md:grid-cols-2"
+              }`}
+            >
               {event.event_images.map((img, idx) => (
-                <img
+                <motion.div
                   key={idx}
-                  src={`${import.meta.env.VITE_SERVER_URL}${img}`}
-                  alt={`${event.event_name} - ${idx + 1}`}
-                  className="w-full h-64 object-cover rounded-xl shadow"
-                />
+                  className="flex justify-center"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <img
+                    src={`${import.meta.env.VITE_SERVER_URL}${img}`}
+                    alt={`${event.event_name} - ${idx + 1}`}
+                    className="w-full max-w-5xl h-80 md:h-96 object-cover rounded-2xl shadow-xl"
+                  />
+                </motion.div>
               ))}
             </div>
           ) : (
-            <div className="h-64 bg-gray-200 flex items-center justify-center rounded-xl">
-              No images available
+            <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center rounded-2xl shadow-lg w-full max-w-4xl">
+              <div className="text-center">
+                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 font-medium">No images available</p>
+              </div>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Details Card */}
-        <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-100 p-6">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">{event.event_name}</h1>
-            <button
-              onClick={() => navigate(-1)}
-              className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
-            >
-              Back
-            </button>
+        <motion.div 
+          className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <div className="p-8">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h1 className="text-3xl font-bold text-blue-900">{event.event_name}</h1>
+              <motion.button
+                onClick={() => navigate(-1)}
+                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 rounded-2xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg inline-flex items-center gap-2"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <ArrowLeft size={18} />
+                Back
+              </motion.button>
+            </div>
+
+            <p className="text-gray-600 text-lg leading-relaxed mb-4">{event.event_description}</p>
+
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Calendar className="text-blue-900" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Date</p>
+                    <p className="text-blue-900 font-semibold">{event.event_date?.split("T")[0]}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-2xl">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <Clock className="text-yellow-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Time</p>
+                    <p className="text-yellow-700 font-semibold">{event.event_time}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-4 bg-green-50 rounded-2xl">
+                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <MapPin className="text-green-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Venue</p>
+                    <p className="text-green-700 font-semibold">{event.event_venue}</p>
+                  </div>
+                </div>
+
+                {(event.volunteer_count != null || event.need_count != null) && (
+                  <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl">
+                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <Users className="text-purple-700" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Volunteers</p>
+                      <p className="text-purple-700 font-semibold">{event.volunteer_count} / {event.need_count}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {event.event_geolocation && (
+              <div className="mb-4 p-4 bg-gray-50 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <MapPin className="text-gray-600" size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Geolocation</p>
+                    <p className="text-gray-800 font-medium">{event.event_geolocation}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-
-          <p className="text-gray-700 mb-4">{event.event_description}</p>
-
-          <div className="flex flex-wrap items-center gap-2 mb-2 text-sm">
-            <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md">📅 {event.event_date?.split("T")[0]}</span>
-            <span className="inline-flex items-center gap-1 bg-yellow-50 text-yellow-700 px-2 py-1 rounded-md">⏰ {event.event_time}</span>
-            <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-md">📍 {event.event_venue}</span>
-          </div>
-
-          {event.event_geolocation && (
-            <p className="text-sm text-gray-600">📌 Geolocation: {event.event_geolocation}</p>
-          )}
-
-          {(event.volunteer_count != null || event.need_count != null) && (
-            <p className="text-sm text-gray-600 mt-2">🧑‍🤝‍🧑 Volunteers: {event.volunteer_count} / {event.need_count}</p>
-          )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

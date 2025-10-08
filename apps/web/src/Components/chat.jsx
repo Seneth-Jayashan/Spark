@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
 import api from "../api/axios";
-import EmojiPicker from "emoji-picker-react";
+// Lazy-load the emoji picker to reduce initial bundle size
+const EmojiPicker = React.lazy(() => import("emoji-picker-react"));
 import { 
   FaPaperPlane, 
   FaSmile, 
@@ -12,7 +13,9 @@ import {
   FaSpinner
 } from "react-icons/fa";
 
-const socket = io(import.meta.env.VITE_SERVER_URL);
+const socket = io(import.meta.env.VITE_SERVER_URL, {
+  transports: ["websocket"], // prefer websocket for lower latency
+});
 
 export default function EventChat({ eventId, user_id, role }) {
   const [message, setMessage] = useState("");
@@ -20,6 +23,12 @@ export default function EventChat({ eventId, user_id, role }) {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const scrollContainerRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  // thresholds
+  const MAX_MESSAGES = 200; // cap rendered messages
+  const SHOULD_ANIMATE = messages.length <= 60; // disable heavy animations when large
 
   const handleEmojiClick = (emojiObject) => {
     setMessage((prevMessage) => prevMessage + emojiObject.emoji);
@@ -33,7 +42,8 @@ export default function EventChat({ eventId, user_id, role }) {
     const fetchMessages = async () => {
       try {
         const res = await api.get(`/chat/${eventId}`);
-        setMessages(res.data);
+        // Only keep the most recent messages to reduce render cost
+        setMessages(Array.isArray(res.data) ? res.data.slice(-MAX_MESSAGES) : []);
       } catch (err) {
         console.error("Failed to load chat:", err);
       }
@@ -41,7 +51,10 @@ export default function EventChat({ eventId, user_id, role }) {
     fetchMessages();
 
     socket.on("receive_message", (msg) =>
-      setMessages((prev) => [...prev, msg])
+      setMessages((prev) => {
+        const next = [...prev, msg];
+        return next.length > MAX_MESSAGES ? next.slice(-MAX_MESSAGES) : next;
+      })
     );
     socket.on("typing", ({ isTyping, senderId }) => {
       if (senderId !== socket.id) setIsTyping(isTyping);
@@ -53,6 +66,7 @@ export default function EventChat({ eventId, user_id, role }) {
     };
   }, [eventId]);
 
+  // Always auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -77,11 +91,21 @@ export default function EventChat({ eventId, user_id, role }) {
   };
 
   const handleTyping = (e) => {
-    setMessage(e.target.value);
+    const nextVal = e.target.value;
+    setMessage(nextVal);
+
+    // Debounce typing events to reduce socket spam
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     socket.emit("typing", {
       eventId: String(eventId),
-      isTyping: e.target.value.length > 0,
+      isTyping: nextVal.length > 0,
     });
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("typing", {
+        eventId: String(eventId),
+        isTyping: false,
+      });
+    }, 800);
   };
 
   const getInitials = (name) => name?.[0]?.toUpperCase() || "U";
@@ -112,7 +136,10 @@ export default function EventChat({ eventId, user_id, role }) {
   return (
     <div className="w-full h-full flex flex-col bg-gradient-to-br from-blue-50 to-amber-50">
       {/* Chat Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-blue-900 scrollbar-track-gray-200">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-blue-900 scrollbar-track-gray-200"
+      >
         {messages.length === 0 ? (
           <div className="flex justify-center items-center h-full">
             <motion.div
@@ -129,13 +156,78 @@ export default function EventChat({ eventId, user_id, role }) {
             </motion.div>
           </div>
         ) : (
-          <AnimatePresence>
-            {messages.map((msg, index) => (
-              <motion.div
+          (SHOULD_ANIMATE ? (
+            <AnimatePresence>
+              {messages.map((msg, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className={`flex ${getMessageAlignment(msg) === "flex-end" ? "justify-end" : "justify-start"} mb-4`}
+                >
+                  <div className="flex flex-col max-w-[80%]">
+                    <div className={`flex items-end gap-2 ${getMessageAlignment(msg) === "flex-end" ? "flex-row-reverse" : "flex-row"}`}>
+                      {/* Avatar */}
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-amber-100 flex items-center justify-center border-2 border-white shadow-sm">
+                          {msg.sender_avatar ? (
+                            <img
+                              src={`${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}`}
+                              alt={msg.sender_name || msg.sender_role}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-sm font-semibold text-blue-900">
+                              {getInitials(msg.sender_name || msg.sender_role)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Message Bubble */}
+                      <div className="flex flex-col">
+                        {msg.sender_name && (
+                          <div className={`flex items-center gap-1 mb-1 ${getMessageAlignment(msg) === "flex-end" ? "justify-end" : "justify-start"}`}>
+                            <span className="text-xs font-medium text-gray-600">
+                              {msg.sender_name}
+                            </span>
+                            {getRoleIcon(msg.sender_role)}
+                          </div>
+                        )}
+                        
+                        <div
+                          className={`px-4 py-2 rounded-2xl shadow-sm ${getMessageColor(msg)} ${
+                            getMessageAlignment(msg) === "flex-start"
+                              ? "rounded-bl-md"
+                              : "rounded-br-md"
+                          }`}
+                        >
+                          <p className="text-sm leading-relaxed break-words">
+                            {msg.message}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Timestamp */}
+                    <div className={`mt-1 ${getMessageAlignment(msg) === "flex-end" ? "text-right" : "text-left"}`}>
+                      <span className="text-xs text-gray-500">
+                        {new Date(msg.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          ) : (
+            // No heavy animations for large lists
+            messages.map((msg, index) => (
+              <div
                 key={index}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
                 className={`flex ${getMessageAlignment(msg) === "flex-end" ? "justify-end" : "justify-start"} mb-4`}
               >
                 <div className="flex flex-col max-w-[80%]">
@@ -168,8 +260,7 @@ export default function EventChat({ eventId, user_id, role }) {
                         </div>
                       )}
                       
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
+                      <div
                         className={`px-4 py-2 rounded-2xl shadow-sm ${getMessageColor(msg)} ${
                           getMessageAlignment(msg) === "flex-start"
                             ? "rounded-bl-md"
@@ -179,7 +270,7 @@ export default function EventChat({ eventId, user_id, role }) {
                         <p className="text-sm leading-relaxed break-words">
                           {msg.message}
                         </p>
-                      </motion.div>
+                      </div>
                     </div>
                   </div>
                   
@@ -193,9 +284,9 @@ export default function EventChat({ eventId, user_id, role }) {
                     </span>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+              </div>
+            ))
+          ))
         )}
 
         {/* Typing Indicator */}
@@ -241,7 +332,9 @@ export default function EventChat({ eventId, user_id, role }) {
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             className="absolute bottom-16 right-4 z-50"
           >
-            <EmojiPicker onEmojiClick={handleEmojiClick} />
+            <Suspense fallback={<div className="p-2 text-sm text-gray-500">Loading…</div>}>
+              <EmojiPicker onEmojiClick={handleEmojiClick} />
+            </Suspense>
           </motion.div>
         )}
         
