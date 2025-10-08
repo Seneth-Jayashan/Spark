@@ -45,7 +45,7 @@ const LoginPage = () => {
         title: "Login Successful!",
         text: `Welcome back, ${user.firstName || "User"}!`,
         icon: "success",
-        confirmButtonColor: "#2563eb",
+        confirmButtonColor: "#F59E0B",
       });
 
       switch (user.user_role) {
@@ -78,7 +78,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center mb-20 max-sm:px-6 mt-48">
+    <div className="flex items-center justify-center mb-20 px-4 max-sm:px-6 mt-32">
       <div className="flex items-stretch justify-between gap-4">
         {/* Left Side Image */}
         <div className="relative w-96 max-md:hidden">
@@ -99,13 +99,13 @@ const LoginPage = () => {
         </div>
 
         {/* Right Side Form */}
-        <div className="flex flex-col items-center justify-center gap-4 w-96 max-sm:w-[330px] mx-auto p-2 py-6 border-2 border-yellow-500 bg-white shadow-md rounded-lg">
+        <div className="flex flex-col items-center justify-center gap-4 w-96 max-sm:w-[330px] mx-auto p-6 border-2 border-yellow-500 bg-white shadow-lg rounded-xl">
           <img src={Logo} alt="Spark Logo" className="w-42 h-28" />
           <h1 className="text-2xl font-medium max-sm:text-center">
             Welcome Back to Spark
           </h1>
 
-          <form className="flex flex-col w-72" onSubmit={handleSubmit}>
+          <form className="flex flex-col w-full" onSubmit={handleSubmit}>
             {/* Email */}
             <div className="mb-4">
               <label
@@ -121,10 +121,10 @@ const LoginPage = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full mt-1 p-2 border rounded-lg focus:ring-2 ${
+                className={`w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 ${
                   errors.email
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-blue-500"
+                    ? "border-red-500 focus-visible:ring-red-500"
+                    : "border-gray-300 focus-visible:ring-blue-500"
                 }`}
               />
               {errors.email && (
@@ -147,10 +147,10 @@ const LoginPage = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full mt-1 p-2 border rounded-lg focus:ring-2 ${
+                className={`w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 ${
                   errors.password
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-blue-500"
+                    ? "border-red-500 focus-visible:ring-red-500"
+                    : "border-gray-300 focus-visible:ring-blue-500"
                 }`}
               />
               {errors.password && (
@@ -167,7 +167,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-60 mx-auto bg-yellow-500 text-white py-2 rounded-full hover:bg-yellow-600 transition disabled:opacity-50"
+              className="w-60 mx-auto bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
             >
               {loading ? "Logging in..." : "Login"}
             </button>

@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import Logo from "../assets/images/sparklogo-removebg.png";
 import OSImage from "../assets/images/OSignupimage.jpg";
 import { AuthContext } from "../contexts/AuthContext";
+import Swal from "sweetalert2";
 
 const SignUpOrganization = () => {
   const { signup, error } = useContext(AuthContext);
@@ -89,14 +90,19 @@ const SignUpOrganization = () => {
 
     try {
       await signup(formData);
-      alert("Organization signed up successfully!");
+      Swal.fire({
+        title: "Success",
+        text: "Organization signed up successfully!",
+        icon: "success",
+        confirmButtonColor: "#F59E0B" // yellow-500
+      });
     } catch (err) {
       console.error("Signup failed:", err);
     }
   };
 
   return (
-    <div className="flex item-center justify-center mb-20 max-sm:px-6">
+    <div className="flex items-center justify-center mb-20 px-4 max-sm:px-6">
       <div className="flex items-stretch justify-between gap-4">
         {/* Left Image */}
         <div className="relative w-96 max-md:hidden">
@@ -117,7 +123,7 @@ const SignUpOrganization = () => {
         </div>
 
         {/* Form */}
-        <div className="flex flex-col items-center justify-center gap-4 w-96 max-sm:w-[330px] mx-auto p-6 border-2 border-yellow-500 bg-white shadow-md rounded-lg">
+        <div className="flex flex-col items-center justify-center gap-4 w-96 max-sm:w-[330px] mx-auto p-6 border-2 border-yellow-500 bg-white shadow-lg rounded-xl">
           <img src={Logo} alt="Logo" className="w-42 h-28" />
           <h1 className="text-2xl font-medium max-sm:text-center">
             Join As an Organization Admin
@@ -133,7 +139,7 @@ const SignUpOrganization = () => {
                 value={formData.user_first_name}
                 onChange={handleChange}
                 placeholder="Enter your first name"
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
               />
               {errors.user_first_name && (
                 <p className="text-red-500 text-sm">
@@ -151,7 +157,7 @@ const SignUpOrganization = () => {
                 value={formData.user_last_name}
                 onChange={handleChange}
                 placeholder="Enter your last name"
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
               />
               {errors.user_last_name && (
                 <p className="text-red-500 text-sm">{errors.user_last_name}</p>
@@ -167,7 +173,7 @@ const SignUpOrganization = () => {
                 value={formData.user_email}
                 onChange={handleChange}
                 placeholder="you@example.com"
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
               />
               {errors.user_email && (
                 <p className="text-red-500 text-sm">{errors.user_email}</p>
@@ -183,7 +189,7 @@ const SignUpOrganization = () => {
                 value={formData.user_password}
                 onChange={handleChange}
                 placeholder="Create a password"
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
               />
               {errors.user_password && (
                 <p className="text-red-500 text-sm">{errors.user_password}</p>
@@ -201,7 +207,7 @@ const SignUpOrganization = () => {
                 value={formData.confirm_password}
                 onChange={handleChange}
                 placeholder="Re-enter your password"
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
               />
               {errors.confirm_password && (
                 <p className="text-red-500 text-sm">
@@ -219,7 +225,7 @@ const SignUpOrganization = () => {
                 value={formData.user_phone_number}
                 onChange={handleChange}
                 placeholder="e.g., +94 771234567"
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
               />
               {errors.user_phone_number && (
                 <p className="text-red-500 text-sm">
@@ -237,7 +243,7 @@ const SignUpOrganization = () => {
                 value={formData.user_address}
                 onChange={handleChange}
                 placeholder="Street, City, ZIP"
-                className="w-full mt-1 p-2 border rounded-lg"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
               />
               {errors.user_address && (
                 <p className="text-red-500 text-sm">{errors.user_address}</p>
@@ -251,7 +257,7 @@ const SignUpOrganization = () => {
                 name="terms"
                 checked={formData.terms}
                 onChange={handleChange}
-                className="h-4 w-4"
+                className="h-4 w-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
               />
               <label className="ml-2 text-sm">
                 I agree to the Terms & Conditions
@@ -264,7 +270,7 @@ const SignUpOrganization = () => {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition"
+              className="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
             >
               Sign Up
             </button>
@@ -274,10 +280,7 @@ const SignUpOrganization = () => {
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
-                <a
-                  href="/login"
-                  className="text-yellow-500 font-medium hover:underline"
-                >
+                <a href="/login" className="text-yellow-600 font-medium hover:underline">
                   Login here
                 </a>
               </p>

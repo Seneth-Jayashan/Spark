@@ -1,31 +1,34 @@
-import React, { useEffect, useState, useRef } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  IconButton,
-  Tooltip,
-  Avatar,
-  Stack,
-  Paper,
-  Badge,
-  useTheme,
-} from "@mui/material";
+import React, { useEffect, useState, useRef, useMemo, Suspense } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
-import SendIcon from "@mui/icons-material/Send";
 import api from "../api/axios";
-import EmojiPicker from "emoji-picker-react";
-import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
+// Lazy-load the emoji picker to reduce initial bundle size
+const EmojiPicker = React.lazy(() => import("emoji-picker-react"));
+import { 
+  FaPaperPlane, 
+  FaSmile, 
+  FaUser, 
+  FaCrown,
+  FaUserTie,
+  FaSpinner
+} from "react-icons/fa";
 
-const socket = io(import.meta.env.VITE_SERVER_URL);
+const socket = io(import.meta.env.VITE_SERVER_URL, {
+  transports: ["websocket"], // prefer websocket for lower latency
+});
 
 export default function EventChat({ eventId, user_id, role }) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
-  const theme = useTheme();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const scrollContainerRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  // thresholds
+  const MAX_MESSAGES = 200; // cap rendered messages
+  const SHOULD_ANIMATE = messages.length <= 60; // disable heavy animations when large
 
   const handleEmojiClick = (emojiObject) => {
     setMessage((prevMessage) => prevMessage + emojiObject.emoji);
@@ -39,7 +42,8 @@ export default function EventChat({ eventId, user_id, role }) {
     const fetchMessages = async () => {
       try {
         const res = await api.get(`/chat/${eventId}`);
-        setMessages(res.data);
+        // Only keep the most recent messages to reduce render cost
+        setMessages(Array.isArray(res.data) ? res.data.slice(-MAX_MESSAGES) : []);
       } catch (err) {
         console.error("Failed to load chat:", err);
       }
@@ -47,7 +51,10 @@ export default function EventChat({ eventId, user_id, role }) {
     fetchMessages();
 
     socket.on("receive_message", (msg) =>
-      setMessages((prev) => [...prev, msg])
+      setMessages((prev) => {
+        const next = [...prev, msg];
+        return next.length > MAX_MESSAGES ? next.slice(-MAX_MESSAGES) : next;
+      })
     );
     socket.on("typing", ({ isTyping, senderId }) => {
       if (senderId !== socket.id) setIsTyping(isTyping);
@@ -59,6 +66,7 @@ export default function EventChat({ eventId, user_id, role }) {
     };
   }, [eventId]);
 
+  // Always auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -83,260 +91,297 @@ export default function EventChat({ eventId, user_id, role }) {
   };
 
   const handleTyping = (e) => {
-    setMessage(e.target.value);
+    const nextVal = e.target.value;
+    setMessage(nextVal);
+
+    // Debounce typing events to reduce socket spam
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     socket.emit("typing", {
       eventId: String(eventId),
-      isTyping: e.target.value.length > 0,
+      isTyping: nextVal.length > 0,
     });
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("typing", {
+        eventId: String(eventId),
+        isTyping: false,
+      });
+    }, 800);
   };
 
   const getInitials = (name) => name?.[0]?.toUpperCase() || "U";
+  const isOwnMessage = (msg) => String(msg?.sender_id) === String(user_id);
   const getMessageAlignment = (msg) =>
-    msg.sender_role === "volunteer" ? "flex-end" : "flex-start";
-  const getMessageColor = (msg) =>
-    msg.sender_role === "volunteer"
-      ? theme.palette.primary.main
-      : theme.palette.grey[300];
-  const getTextColor = (msg) =>
-    msg.sender_role === "volunteer"
-      ? theme.palette.primary.contrastText
-      : theme.palette.text.primary;
+    isOwnMessage(msg) ? "flex-end" : "flex-start";
+  
+  const getMessageColor = (msg) => {
+    const isOwn = isOwnMessage(msg);
+    if (isOwn) return "bg-blue-900 text-white"; // your messages: blue
+    if (msg?.sender_role === "organizer" || msg?.sender_role === "org_member") return "bg-[#FFB238] text-blue-900"; // organization: gold
+    if (msg?.sender_role === "volunteer") return "bg-gray-200 text-gray-800"; // other volunteers: gray
+    return "bg-gray-200 text-gray-800";
+  };
+
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case "organizer":
+      case "org_member":
+        return <FaCrown className="text-[#FFB238] text-xs" />;
+      case "admin":
+        return <FaUserTie className="text-blue-900 text-xs" />;
+      default:
+        return <FaUser className="text-gray-600 text-xs" />;
+    }
+  };
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        borderRadius: 0,
-      }}
-    >
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-blue-50 to-amber-50">
       {/* Chat Messages Area */}
-      <Box
-        sx={{
-          flex: 1,
-          overflowY: "auto",
-          p: 2,
-          background: theme.palette.background.default,
-          "&::-webkit-scrollbar": { width: "8px" },
-          "&::-webkit-scrollbar-track": { background: theme.palette.grey[200] },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: theme.palette.primary.main,
-            borderRadius: "4px",
-          },
-        }}
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-blue-900 scrollbar-track-gray-200"
       >
         {messages.length === 0 ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-              color: theme.palette.text.secondary,
-            }}
-          >
-            <Typography>No messages yet. Start the conversation!</Typography>
-          </Box>
-        ) : (
-          messages.map((msg, index) => (
-            <Box
-              key={index}
-              sx={{
-                display: "flex",
-                justifyContent: getMessageAlignment(msg),
-                mb: 2,
-              }}
+          <div className="flex justify-center items-center h-full">
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  maxWidth: "80%",
-                }}
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaPaperPlane className="text-blue-900 text-xl" />
+              </div>
+              <p className="text-gray-600 font-medium">No messages yet</p>
+              <p className="text-gray-500 text-sm">Start the conversation!</p>
+            </motion.div>
+          </div>
+        ) : (
+          (SHOULD_ANIMATE ? (
+            <AnimatePresence>
+              {messages.map((msg, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className={`flex ${getMessageAlignment(msg) === "flex-end" ? "justify-end" : "justify-start"} mb-4`}
+                >
+                  <div className="flex flex-col max-w-[80%]">
+                    <div className={`flex items-end gap-2 ${getMessageAlignment(msg) === "flex-end" ? "flex-row-reverse" : "flex-row"}`}>
+                      {/* Avatar */}
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-amber-100 flex items-center justify-center border-2 border-white shadow-sm">
+                          {msg.sender_avatar ? (
+                            <img
+                              src={`${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}`}
+                              alt={msg.sender_name || msg.sender_role}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-sm font-semibold text-blue-900">
+                              {getInitials(msg.sender_name || msg.sender_role)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Message Bubble */}
+                      <div className="flex flex-col">
+                        {msg.sender_name && (
+                          <div className={`flex items-center gap-1 mb-1 ${getMessageAlignment(msg) === "flex-end" ? "justify-end" : "justify-start"}`}>
+                            <span className="text-xs font-medium text-gray-600">
+                              {msg.sender_name}
+                            </span>
+                            {getRoleIcon(msg.sender_role)}
+                          </div>
+                        )}
+                        
+                        <div
+                          className={`px-4 py-2 rounded-2xl shadow-sm ${getMessageColor(msg)} ${
+                            getMessageAlignment(msg) === "flex-start"
+                              ? "rounded-bl-md"
+                              : "rounded-br-md"
+                          }`}
+                        >
+                          <p className="text-sm leading-relaxed break-words">
+                            {msg.message}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Timestamp */}
+                    <div className={`mt-1 ${getMessageAlignment(msg) === "flex-end" ? "text-right" : "text-left"}`}>
+                      <span className="text-xs text-gray-500">
+                        {new Date(msg.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          ) : (
+            // No heavy animations for large lists
+            messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex ${getMessageAlignment(msg) === "flex-end" ? "justify-end" : "justify-start"} mb-4`}
               >
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  alignItems="flex-end"
-                  justifyContent={getMessageAlignment(msg)}
-                >
-                  {getMessageAlignment(msg) === "flex-start" && (
-                    <Tooltip title={msg.sender_name || msg.sender_role} arrow>
-                      <Avatar
-                        src={
-                          msg.sender_avatar
-                            ? `${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}`
-                            : undefined
-                        }
-                        alt={msg.sender_name || msg.sender_role}
-                        sx={{
-                          bgcolor: theme.palette.secondary.main,
-                          width: 32,
-                          height: 32,
-                          fontSize: "0.875rem",
-                        }}
+                <div className="flex flex-col max-w-[80%]">
+                  <div className={`flex items-end gap-2 ${getMessageAlignment(msg) === "flex-end" ? "flex-row-reverse" : "flex-row"}`}>
+                    {/* Avatar */}
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-amber-100 flex items-center justify-center border-2 border-white shadow-sm">
+                        {msg.sender_avatar ? (
+                          <img
+                            src={`${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}`}
+                            alt={msg.sender_name || msg.sender_role}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm font-semibold text-blue-900">
+                            {getInitials(msg.sender_name || msg.sender_role)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Message Bubble */}
+                    <div className="flex flex-col">
+                      {msg.sender_name && (
+                        <div className={`flex items-center gap-1 mb-1 ${getMessageAlignment(msg) === "flex-end" ? "justify-end" : "justify-start"}`}>
+                          <span className="text-xs font-medium text-gray-600">
+                            {msg.sender_name}
+                          </span>
+                          {getRoleIcon(msg.sender_role)}
+                        </div>
+                      )}
+                      
+                      <div
+                        className={`px-4 py-2 rounded-2xl shadow-sm ${getMessageColor(msg)} ${
+                          getMessageAlignment(msg) === "flex-start"
+                            ? "rounded-bl-md"
+                            : "rounded-br-md"
+                        }`}
                       >
-                        {getInitials(msg.sender_name || msg.sender_role)}
-                      </Avatar>
-                    </Tooltip>
-                  )}
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      bgcolor: getMessageColor(msg),
-                      color: getTextColor(msg),
-                      borderRadius:
-                        getMessageAlignment(msg) === "flex-start"
-                          ? "18px 18px 18px 4px"
-                          : "18px 18px 4px 18px",
-                      boxShadow: theme.shadows[1],
-                    }}
-                  >
-                    {msg.sender_name && (
-                      <Typography
-                        variant="caption"
-                        sx={{ opacity: 0.8, display: "block", mb: 0.5 }}
-                      >
-                        {msg.sender_name}
-                      </Typography>
-                    )}
-                    <Typography variant="body2">{msg.message}</Typography>
-                  </Box>
-                  {getMessageAlignment(msg) === "flex-end" && (
-                    <Tooltip title={msg.sender_name || msg.sender_role} arrow>
-                      <Avatar
-                        src={
-                          msg.sender_avatar
-                            ? `${import.meta.env.VITE_SERVER_URL}${msg.sender_avatar}`
-                            : undefined
-                        }
-                        alt={msg.sender_name || msg.sender_role}
-                        sx={{
-                          bgcolor: theme.palette.info.main,
-                          width: 32,
-                          height: 32,
-                          fontSize: "0.875rem",
-                        }}
-                      >
-                        {getInitials(msg.sender_name || msg.sender_role)}
-                      </Avatar>
-                    </Tooltip>
-                  )}
-                </Stack>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    mt: 0.5,
-                    textAlign: getMessageAlignment(msg),
-                    color: theme.palette.text.secondary,
-                  }}
-                >
-                  {new Date(msg.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Typography>
-              </Box>
-            </Box>
+                        <p className="text-sm leading-relaxed break-words">
+                          {msg.message}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Timestamp */}
+                  <div className={`mt-1 ${getMessageAlignment(msg) === "flex-end" ? "text-right" : "text-left"}`}>
+                    <span className="text-xs text-gray-500">
+                      {new Date(msg.timestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))
           ))
         )}
 
+        {/* Typing Indicator */}
         {isTyping && (
-          <Box sx={{ display: "flex", justifyContent: "flex-start", mb: 2 }}>
-            <Box
-              sx={{
-                p: 1.5,
-                bgcolor: theme.palette.grey[300],
-                borderRadius: "18px 18px 18px 4px",
-                display: "flex",
-              }}
-            >
-              {[0, 0.2, 0.4].map((delay, i) => (
-                <Box
-                  key={i}
-                  sx={{
-                    width: "8px",
-                    height: "8px",
-                    bgcolor: theme.palette.grey[500],
-                    borderRadius: "50%",
-                    mr: i < 2 ? 0.5 : 0,
-                    animation: "pulse 1.5s infinite ease-in-out",
-                    animationDelay: `${delay}s`,
-                    "@keyframes pulse": {
-                      "0%,100%": { opacity: 0.3 },
-                      "50%": { opacity: 1 },
-                    },
-                  }}
-                />
-              ))}
-            </Box>
-          </Box>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex justify-start mb-4"
+          >
+            <div className="flex items-end gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <FaSpinner className="text-gray-500 text-xs animate-spin" />
+              </div>
+              <div className="px-4 py-2 bg-gray-200 rounded-2xl rounded-bl-md">
+                <div className="flex space-x-1">
+                  {[0, 0.2, 0.4].map((delay, i) => (
+                    <motion.div
+                      key={i}
+                      className="w-2 h-2 bg-gray-500 rounded-full"
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        delay: delay,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
         <div ref={messagesEndRef} />
-      </Box>
+      </div>
 
       {/* Input Box */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          p: 1,
-          borderTop: `1px solid ${theme.palette.divider}`,
-          backgroundColor: theme.palette.background.paper,
-        }}
-      >
+      <div className="relative border-t border-gray-200 bg-white p-4">
         {showEmojiPicker && (
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: "60px", // just above input bar
-              right: "10px",
-              zIndex: 1000,
-            }}
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            className="absolute bottom-16 right-4 z-50"
           >
-            <EmojiPicker onEmojiClick={handleEmojiClick} />
-          </Box>
+            <Suspense fallback={<div className="p-2 text-sm text-gray-500">Loading…</div>}>
+              <EmojiPicker onEmojiClick={handleEmojiClick} />
+            </Suspense>
+          </motion.div>
         )}
-        <TextField
-          fullWidth
-          placeholder="Type a message..."
-          value={message}
-          onChange={handleTyping}
-          onKeyDown={handleKeyDown}
-          multiline
-          maxRows={4}
-          size="small"
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "20px",
-              backgroundColor: theme.palette.background.default,
-            },
-          }}
-        />
-        <IconButton onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
-          <InsertEmoticonIcon />
-        </IconButton>
+        
+        <div className="flex items-end gap-3">
+          <div className="flex-1">
+            <textarea
+              value={message}
+              onChange={handleTyping}
+              onKeyDown={handleKeyDown}
+              placeholder="Type a message..."
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition-all duration-200"
+              rows={1}
+              style={{
+                minHeight: "48px",
+                maxHeight: "120px",
+              }}
+              onInput={(e) => {
+                e.target.style.height = "auto";
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+              }}
+            />
+          </div>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="p-3 text-gray-600 hover:text-blue-900 hover:bg-blue-50 rounded-full transition-colors duration-200"
+          >
+            <FaSmile className="text-lg" />
+          </motion.button>
 
-        <Tooltip title="Send">
-          <IconButton
-            color="primary"
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleSend}
             disabled={!message.trim()}
-            sx={{
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-              "&:hover": { backgroundColor: theme.palette.primary.dark },
-              "&:disabled": { backgroundColor: theme.palette.grey[300] },
-            }}
+            className={`p-3 rounded-full transition-all duration-200 ${
+              message.trim()
+                ? "bg-blue-900 text-white hover:bg-blue-800 shadow-lg hover:shadow-xl"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
-            <SendIcon />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    </Paper>
+            <FaPaperPlane className="text-lg" />
+          </motion.button>
+        </div>
+      </div>
+    </div>
   );
 }
