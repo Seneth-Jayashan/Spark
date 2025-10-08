@@ -84,7 +84,7 @@ const StaffSidebar = () => {
 
       {/* Logout */}
       <div className="p-4 border-t border-slate-200">
-        <button className="flex items-center gap-3 w-full p-3.5 bg-[#FFB238] text-blue-950 hover:bg-blue-600 hover:text-white rounded-md transition shadow"
+        <button className="flex items-center gap-3 w-full p-3.5 bg-[#FFB238] text-blue-950 hover:bg-blue-900 hover:text-white rounded-md transition shadow"
         onClick={() => navigate("/logout")}>
           <FaSignOutAlt />
           {isOpen && <span className="font-medium">Logout</span>}
