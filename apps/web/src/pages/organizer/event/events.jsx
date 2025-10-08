@@ -13,6 +13,8 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [selectedEventId, setSelectedEventId] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
 
   useEffect(() => {
     const getAllEvents = async () => {
@@ -42,6 +44,9 @@ export default function Events() {
     try {
       await deleteEvent(event_id);
       setEvents((prev) => prev.filter((e) => e.event_id !== event_id));
+
+      // ✅ Redirect after delete
+      navigate("/dashboard/organizer/event/events");
     } catch (err) {
       console.error("Failed to delete event:", err);
       alert("Error deleting event. Try again.");
@@ -107,7 +112,9 @@ export default function Events() {
               <div className="relative">
                 {event.event_images && event.event_images.length > 0 ? (
                   <img
-                    src={`${import.meta.env.VITE_SERVER_URL}${event.event_images[0]}`}
+                    src={`${import.meta.env.VITE_SERVER_URL}${
+                      event.event_images[0]
+                    }`}
                     alt={event.event_name}
                     className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -190,7 +197,11 @@ export default function Events() {
                   </button>
 
                   <button
-                    onClick={() => handleDelete(event.event_id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEventToDelete(event.event_id);
+                      setDeleteModalOpen(true);
+                    }}
                     className="px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors flex items-center gap-2"
                   >
                     <Trash2 size={16} /> Delete
@@ -266,6 +277,49 @@ export default function Events() {
                   role="organizer"
                 />
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Confirm Delete
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this event? This action cannot be
+              undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await deleteEvent(eventToDelete);
+                    setDeleteModalOpen(false);
+                    setEventToDelete(null);
+
+                    // Redirect + refresh
+                    navigate("/dashboard/organizer/event/events", {
+                      replace: true,
+                    });
+                    window.location.reload();
+                  } catch (err) {
+                    console.error("Failed to delete event:", err);
+                    alert("Error deleting event. Try again.");
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
