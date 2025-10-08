@@ -208,7 +208,10 @@ export default function Events() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Users size={16} className="text-indigo-500" />
-                      <span>Volunteers Needed: {event.need_count ?? 0}</span>
+                      <span>
+                        Volunteers Needed: {event.need_count ?? 0} <br />
+                        Volunteers Joined: {event.volunteer_count ?? 0}
+                      </span>
                     </div>
                   </div>
 

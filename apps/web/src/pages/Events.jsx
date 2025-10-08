@@ -5,7 +5,14 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 export default function Events() {
-  const { events, fetchPublicEvents, loading, error, addMember, getEventsByUser } = useEvent();
+  const {
+    events,
+    fetchPublicEvents,
+    loading,
+    error,
+    addMember,
+    getEventsByUser,
+  } = useEvent();
   const { user } = useAuth();
 
   const [filteredEvents, setFilteredEvents] = useState([]);
@@ -63,7 +70,8 @@ export default function Events() {
     fetchUserRegistered();
   }, [user?.user_id]);
 
-  const isUserRegistered = (event_id) => userRegisteredEvents.includes(event_id);
+  const isUserRegistered = (event_id) =>
+    userRegisteredEvents.includes(event_id);
 
   const handleRegister = async (event_id) => {
     if (!user) {
@@ -86,7 +94,9 @@ export default function Events() {
     }
     try {
       await addMember(event_id, user.user_id);
-      setUserRegisteredEvents((prev) => (prev.includes(event_id) ? prev : [...prev, event_id]));
+      setUserRegisteredEvents((prev) =>
+        prev.includes(event_id) ? prev : [...prev, event_id]
+      );
       Swal.fire({
         title: "Registered!",
         text: "You have successfully registered for the event.",
@@ -120,8 +130,12 @@ export default function Events() {
     <div className="min-h-screen p-6 bg-gray-50 mt-32">
       {/* Heading */}
       <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">Explore Events</h1>
-        <p className="text-gray-600 mt-1">Filter and discover opportunities to make an impact.</p>
+        <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">
+          Explore Events
+        </h1>
+        <p className="text-gray-600 mt-1">
+          Filter and discover opportunities to make an impact.
+        </p>
       </div>
 
       {/* Filters */}
@@ -145,7 +159,10 @@ export default function Events() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="locationFilter" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="locationFilter"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 📍 Location
               </label>
               <select
@@ -164,7 +181,10 @@ export default function Events() {
             </div>
 
             <div>
-              <label htmlFor="dateFilter" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="dateFilter"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 📅 Date
               </label>
               <input
@@ -192,27 +212,37 @@ export default function Events() {
               {event.event_images && event.event_images.length > 0 && (
                 <div className="relative h-48 w-full overflow-hidden">
                   <img
-                    src={`${import.meta.env.VITE_SERVER_URL}${event.event_images[0]}`}
+                    src={`${import.meta.env.VITE_SERVER_URL}${
+                      event.event_images[0]
+                    }`}
                     alt={event.event_name}
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  <span className="absolute top-3 left-3 bg-blue-600 text-white text-xs px-2 py-1 rounded-md shadow">Event</span>
+                  <span className="absolute top-3 left-3 bg-blue-600 text-white text-xs px-2 py-1 rounded-md shadow">
+                    Event
+                  </span>
                 </div>
               )}
 
               <div className="p-4 flex flex-col flex-1">
-                <h2 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">{event.event_name}</h2>
-                <p className="text-gray-700 mb-3 line-clamp-3 flex-1">
+                <h2 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
+                  {event.event_name}
+                </h2>
+                <p className="text-gray-700 mb-4 line-clamp-3 flex-1">
                   {event.event_description}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-2 mb-4 text-sm text-gray-600">
-                  <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md">📅 {event.event_date?.split("T")[0]}</span>
-                  <span className="inline-flex items-center gap-1 bg-yellow-50 text-yellow-700 px-2 py-1 rounded-md">⏰ {event.event_time}</span>
-                  <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-md">📍 {event.event_venue}</span>
+                {/* Event Info */}
+                <div className="flex flex-col gap-2 text-sm text-gray-700 mb-4">
+                  <span>📅 Date: {event.event_date?.split("T")[0]}</span>
+                  <span>⏰ Time: {event.event_time}</span>
+                  <span>📍 Venue: {event.event_venue}</span>
+                  <span>👥 Needed: {event.need_count ?? 0}</span>
+                  <span>✅ Joined: {event.volunteer_count ?? 0}</span>
                 </div>
 
-                <div className="mt-auto flex items-center gap-2">
+                {/* Action Buttons */}
+                <div className="flex flex-col md:flex-row items-center gap-3">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
