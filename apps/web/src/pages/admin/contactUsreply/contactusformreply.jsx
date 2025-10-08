@@ -91,26 +91,26 @@ function AdminContactUsReply() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <button
           onClick={() => history("/dashboard/admin/contactus")}
-          className="flex items-center text-teal-600 hover:text-teal-800 mb-6 transition-colors"
+          className="flex items-center text-blue-900 hover:opacity-90 mb-6 transition-colors"
         >
           <FiArrowLeft className="mr-2" />
           Back to Messages
         </button>
 
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <div className="bg-teal-600 px-6 py-4">
+        <div className="bg-white/90 backdrop-blur shadow-md rounded-xl overflow-hidden border border-gray-200">
+          <div className="bg-gradient-to-r from-blue-900 to-blue-800 px-6 py-4">
             <h1 className="text-2xl font-bold text-white">Reply to Message</h1>
           </div>
 
           <div className="p-6 space-y-6">
             <div className="space-y-4">
               <div className="flex items-start">
-                <div className="flex-shrink-0 bg-teal-100 p-2 rounded-full">
-                  <FiUser className="h-5 w-5 text-teal-600" />
+                <div className="flex-shrink-0 bg-blue-100 p-2 rounded-full">
+                  <FiUser className="h-5 w-5 text-blue-700" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">Name</p>
@@ -119,8 +119,8 @@ function AdminContactUsReply() {
               </div>
 
               <div className="flex items-start">
-                <div className="flex-shrink-0 bg-teal-100 p-2 rounded-full">
-                  <FiMail className="h-5 w-5 text-teal-600" />
+                <div className="flex-shrink-0 bg-blue-100 p-2 rounded-full">
+                  <FiMail className="h-5 w-5 text-blue-700" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">Email</p>
@@ -129,8 +129,8 @@ function AdminContactUsReply() {
               </div>
 
               <div className="flex items-start">
-                <div className="flex-shrink-0 bg-teal-100 p-2 rounded-full">
-                  <FiPhone className="h-5 w-5 text-teal-600" />
+                <div className="flex-shrink-0 bg-blue-100 p-2 rounded-full">
+                  <FiPhone className="h-5 w-5 text-blue-700" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">Phone Number</p>
@@ -139,13 +139,13 @@ function AdminContactUsReply() {
               </div>
 
               {/* Original Message Section - Updated */}
-              <div className="flex items-start w-full"> {/* Added w-full here */}
-                <div className="flex-shrink-0 bg-teal-100 p-2 rounded-full">
-                  <FiMessageSquare className="h-5 w-5 text-teal-600" />
+              <div className="flex items-start w-full">
+                <div className="flex-shrink-0 bg-blue-100 p-2 rounded-full">
+                  <FiMessageSquare className="h-5 w-5 text-blue-700" />
                 </div>
-                <div className="ml-3 flex-1 min-w-0"> {/* Added min-w-0 */}
+                <div className="ml-3 flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-700">Original Message</p>
-                  <p className="text-base text-gray-800 bg-teal-50 p-4 rounded-lg mt-1 border border-teal-200 shadow-sm break-words"> {/* Added break-words */}
+                  <p className="text-base text-gray-800 bg-amber-50 p-4 rounded-lg mt-1 border border-amber-200 shadow-sm break-words">
                     {input.message}
                   </p>
                 </div>
@@ -164,7 +164,7 @@ function AdminContactUsReply() {
                     rows={6}
                     value={input.reply || ""}
                     onChange={handleChange}
-                    className="shadow-sm focus:ring-teal-500 focus:border-teal-500 block w-full sm:text-sm border border-gray-300 rounded-md p-3"
+                    className="shadow-sm focus:ring-blue-900 focus:border-blue-900 block w-full sm:text-sm border-2 border-gray-200 rounded-lg p-3"
                     placeholder="Type your detailed reply here..."
                   />
                 </div>
@@ -177,7 +177,7 @@ function AdminContactUsReply() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 ${
+                  className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-900 hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-900 ${
                     isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                   }`}
                 >

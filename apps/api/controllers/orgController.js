@@ -169,6 +169,45 @@ exports.deleteOrganization = async (req, res) => {
     }
 };
 
+// ✅ Export organizations as CSV
+exports.exportOrganizationsCsv = async (req, res) => {
+    try {
+        const orgs = await Organization.find().lean();
+        if (!orgs || orgs.length === 0) {
+            return res.status(404).json({ message: 'No organization found' });
+        }
+
+        const columns = [
+            'org_id',
+            'org_name',
+            'org_type',
+            'industry',
+            'contact_email',
+            'contact_phone',
+            'website',
+            'org_status',
+            'created_at',
+            'updated_at'
+        ];
+
+        const header = columns.join(',');
+        const escape = (val) => {
+            if (val === null || val === undefined) return '';
+            const str = String(val).replace(/"/g, '""');
+            if (str.search(/[",\n]/g) >= 0) return `"${str}` + `"`;
+            return str;
+        };
+        const rows = orgs.map((o) => columns.map((c) => escape(o[c])).join(','));
+        const csv = [header, ...rows].join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="organizations.csv"');
+        return res.status(200).send(csv);
+    } catch (error) {
+        res.status(500).json({ message: 'Error exporting organizations', error });
+    }
+};
+
 exports.addMember = async (req,res) => {
     try{
         const {org_id} = req.params;

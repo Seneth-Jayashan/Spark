@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import Logo from '../../assets/images/Logo.png'; 
+import Logo from "../../assets/images/Logo.png";
 import {
   FaTachometerAlt,
   FaTasks,
@@ -8,6 +8,7 @@ import {
   FaUser,
   FaBars,
   FaSignOutAlt,
+  FaHistory,
 } from "react-icons/fa";
 
 const VolunteerSidebar = ({ isOpen, setIsOpen }) => {
@@ -15,10 +16,26 @@ const VolunteerSidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
 
   const menuItems = [
-    { name: "Dashboard", path: "/dashboard/volunteer", icon: <FaTachometerAlt /> },
-    { name: "My Events", path: "/dashboard/volunteer/myevents", icon: <FaTasks /> },
-    { name: "History", path: "/dashboard/volunteer/history", icon: <FaTasks /> },
-    { name: "Events", path: "/dashboard/volunteer/events", icon: <FaCalendarAlt /> },
+    {
+      name: "Dashboard",
+      path: "/dashboard/volunteer",
+      icon: <FaTachometerAlt />,
+    },
+    {
+      name: "Upcoming Events",
+      path: "/dashboard/volunteer/myevents",
+      icon: <FaTasks />,
+    },
+    {
+      name: "History of Events",
+      path: "/dashboard/volunteer/history",
+      icon: <FaHistory />,
+    },
+    {
+      name: "Events",
+      path: "/dashboard/volunteer/events",
+      icon: <FaCalendarAlt />,
+    },
     { name: "Profile", path: "/dashboard/volunteer/profile", icon: <FaUser /> },
   ];
 
@@ -28,29 +45,32 @@ const VolunteerSidebar = ({ isOpen, setIsOpen }) => {
       className="fixed top-0 left-0 h-full bg-white text-slate-800 flex flex-col shadow-lg transition-all duration-300 z-50 border-r border-slate-200"
     >
       {/* Logo & Toggle */}
-<div className="flex items-center justify-between p-4 border-b border-slate-200">
-  <NavLink to="/" className="flex items-center gap-2 flex-col">
-    <span
-      className={`${
-        isOpen ? "w-32" : "w-8"
-      } overflow-hidden transition-all duration-300`}
-    >
-      <img src={Logo} alt="Logo" className="w-full h-auto hover:scale-[1.03] transition-transform duration-300" />
-    </span>
-    {isOpen && (
-      <span className="font-semibold md:text-2xl text-lg text-[#FFB238]">
-       SPARK - Volunteer
-      </span>
-    )}
-  </NavLink>
-  <button
-    onClick={() => setIsOpen(!isOpen)}
-    className={`p-2 rounded-lg transition border border-transparent hover:border-[#FFB238] hover:text-[#FFB238] hover:bg-amber-50`}
-  >
-    <FaBars />
-  </button>
-</div>
-
+      <div className="flex items-center justify-between p-4 border-b border-slate-200">
+        <NavLink to="/" className="flex items-center gap-2 flex-col">
+          <span
+            className={`${
+              isOpen ? "w-32" : "w-8"
+            } overflow-hidden transition-all duration-300`}
+          >
+            <img
+              src={Logo}
+              alt="Logo"
+              className="w-full h-auto hover:scale-[1.03] transition-transform duration-300"
+            />
+          </span>
+          {isOpen && (
+            <span className="font-semibold md:text-2xl text-lg text-[#FFB238]">
+              SPARK - Volunteer
+            </span>
+          )}
+        </NavLink>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`p-2 rounded-lg transition border border-transparent hover:border-[#FFB238] hover:text-[#FFB238] hover:bg-amber-50`}
+        >
+          <FaBars />
+        </button>
+      </div>
 
       {/* Menu */}
       <nav className="flex-1 mt-4">
@@ -62,14 +82,30 @@ const VolunteerSidebar = ({ isOpen, setIsOpen }) => {
               key={item.name}
               to={item.path}
               className={`group flex items-center gap-3 p-3.5 mx-2 my-1 rounded-md transition-all duration-150 border-l-2 ${
-                active ? "bg-amber-50/60 border-[#FFB238]" : "border-transparent hover:bg-slate-100"
+                active
+                  ? "bg-amber-50/60 border-[#FFB238]"
+                  : "border-transparent hover:bg-slate-100"
               }`}
               title={!isOpen ? item.name : ""}
             >
-              <span className={`text-base inline-flex items-center justify-center w-9 h-9 rounded-md ${
-                active ? "bg-[#FFB238]/20 text-amber-700" : "bg-blue-50 text-blue-700"
-              }`}>{item.icon}</span>
-              {isOpen && <span className={`font-medium tracking-wide ${active ? "text-amber-700" : "text-slate-800"}`}>{item.name}</span>}
+              <span
+                className={`text-base inline-flex items-center justify-center w-9 h-9 rounded-md ${
+                  active
+                    ? "bg-[#FFB238]/20 text-amber-700"
+                    : "bg-blue-50 text-blue-700"
+                }`}
+              >
+                {item.icon}
+              </span>
+              {isOpen && (
+                <span
+                  className={`font-medium tracking-wide ${
+                    active ? "text-amber-700" : "text-slate-800"
+                  }`}
+                >
+                  {item.name}
+                </span>
+              )}
             </NavLink>
           );
         })}

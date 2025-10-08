@@ -6,6 +6,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 const upload  = require('../middleware/uploadMiddleware');
 
 router.get('/all', userController.getUsers);
+router.get('/export', authMiddleware(['admin']), userController.exportUsersCsv);
 router.post('/signup', upload.single("user_profile_picture"), userController.createUser);
 router.post('/user', userController.getUserById);
 router.post('/forgotpassword', userController.forgotPassword);

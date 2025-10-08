@@ -124,11 +124,11 @@ export default function Forms() {
     });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Contact Messages</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Contact Messages</h1>
             <p className="text-gray-600 mt-1">
               {filteredMessages.length} {filteredMessages.length === 1 ? "message" : "messages"} found
             </p>
@@ -142,14 +142,14 @@ export default function Forms() {
               <input
                 type="text"
                 placeholder="Search messages..."
-                className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                className="pl-10 pr-4 py-2 w-full rounded-lg border-2 border-gray-200 bg-white/80 backdrop-blur focus:ring-2 focus:ring-blue-900 focus:border-blue-900"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <button
               onClick={generatePDF}
-              className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center justify-center gap-2 bg-blue-900 hover:bg-blue-900 text-white px-4 py-2 rounded-lg shadow"
             >
               <FiDownload />
               <span>Export PDF</span>
@@ -157,17 +157,17 @@ export default function Forms() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+        <div className="bg-white/90 backdrop-blur rounded-2xl shadow border border-gray-200 overflow-hidden mb-6">
           <div className="p-4 border-b border-gray-200 flex flex-wrap gap-2">
             <button
               onClick={() => setFilter("all")}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${
                 filter === "all"
-                  ? "bg-teal-100 text-teal-800"
+                  ? "bg-blue-100 text-blue-800"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              {filter === "all" && <span className="h-2 w-2 rounded-full bg-teal-800"></span>}
+              {filter === "all" && <span className="h-2 w-2 rounded-full bg-blue-800"></span>}
               All Messages
             </button>
             <button
@@ -185,11 +185,11 @@ export default function Forms() {
               onClick={() => setFilter("not-replied")}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${
                 filter === "not-replied"
-                  ? "bg-yellow-100 text-yellow-800"
+                  ? "bg-amber-100 text-amber-800"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              {filter === "not-replied" && <span className="h-2 w-2 rounded-full bg-yellow-800"></span>}
+              {filter === "not-replied" && <span className="h-2 w-2 rounded-full bg-amber-800"></span>}
               Pending
             </button>
           </div>
@@ -285,7 +285,7 @@ export default function Forms() {
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                               msg.reply
                                 ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
+                                : "bg-amber-100 text-amber-800"
                             }`}
                           >
                             {msg.reply ? "Replied" : "Pending"}
@@ -295,13 +295,13 @@ export default function Forms() {
                           <div className="flex justify-end space-x-2">
                             <Link
                               to={`admin/${msg.contact_id}`}
-                              className="text-teal-600 hover:text-teal-900 flex items-center"
+                              className="text-blue-900 hover:opacity-90 flex items-center"
                             >
                               <FiMail className="mr-1" /> Reply
                             </Link>
                             <button
                               onClick={() => handleDeleteClick(msg.contact_id, msg.reply)}
-                              className={`flex items-center ${msg.reply && msg.reply.trim() !== "" ? "text-red-600 hover:text-red-900" : "text-gray-400 cursor-not-allowed"}`}
+                              className={`flex items-center ${msg.reply && msg.reply.trim() !== "" ? "text-red-600 hover:text-red-700" : "text-gray-400 cursor-not-allowed"}`}
                               disabled={!msg.reply || msg.reply.trim() === ""}
                               title={!msg.reply || msg.reply.trim() === "" ? "Reply must be sent before deleting" : "Delete message"}
                             >
@@ -329,7 +329,7 @@ export default function Forms() {
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           msg.reply
                             ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
+                            : "bg-amber-100 text-amber-800"
                         }`}
                       >
                         {msg.reply ? "Replied" : "Pending"}
@@ -347,7 +347,7 @@ export default function Forms() {
                     <div className="mt-3 flex space-x-2">
                       <Link
                         to={`admin/${msg.contact_id}`}
-                        className="flex-1 flex items-center justify-center gap-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded text-sm"
+                        className="flex-1 flex items-center justify-center gap-1 bg-blue-900 hover:bg-blue-900 text-white px-3 py-2 rounded text-sm"
                       >
                         <FiMail size={14} />
                         <span>Reply</span>
