@@ -10,19 +10,19 @@ import {
 } from "react-icons/fa";
 import { useOrg } from "../../contexts/OrgContext";
 import Logo from '../../assets/images/Logo.png'; 
-
+import { useAuth } from "../../contexts/AuthContext";
 
 const OrgAdminSidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const { currentOrg, loading, fetchLoggedUserOrg  } = useOrg();
   const navigate = useNavigate();
-  
+  const { user } = useAuth();
 
   useEffect(() => {
-  if (!currentOrg && !loading) {
+  if (user) {
     fetchLoggedUserOrg();
   }
-}, []);
+}, [user]);
 
   // Only decide if user has org after loading completes
   const hasOrg = !loading && !!currentOrg;
