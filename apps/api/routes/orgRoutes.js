@@ -7,6 +7,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 // Get all organizes
 router.get('/', organizationController.getAllOrganization);
+router.get('/export', authMiddleware(['admin']), organizationController.exportOrganizationsCsv);
 
 // Get an organize by user ID
 router.get('/my', authMiddleware(['organizer','admin']),organizationController.getOwnOrg);

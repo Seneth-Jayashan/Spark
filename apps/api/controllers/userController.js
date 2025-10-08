@@ -83,16 +83,64 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// ✅ Get all users
+// ✅ Get all users (optional filter by role)
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-user_password");
+    const { role } = req.query;
+    const filter = role ? { user_role: role } : {};
+    const users = await User.find(filter).select("-user_password");
     if (!users || users.length === 0) {
       return res.status(404).json({ message: "No users found" });
     }
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: "Error fetching users", error });
+  }
+};
+
+// ✅ Export users as CSV (optional filter by role)
+exports.exportUsersCsv = async (req, res) => {
+  try {
+    const { role } = req.query;
+    const filter = role ? { user_role: role } : {};
+    const users = await User.find(filter).select("-user_password -__v").lean();
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+
+    const columns = [
+      "user_id",
+      "user_first_name",
+      "user_last_name",
+      "user_email",
+      "user_phone_number",
+      "user_role",
+      "user_status",
+      "user_verified",
+      "created_at",
+    ];
+
+    const header = columns.join(",");
+    const escape = (val) => {
+      if (val === null || val === undefined) return "";
+      const str = String(val).replace(/"/g, '""');
+      if (str.search(/[",\n]/g) >= 0) return `"${str}` + `"`;
+      return str;
+    };
+    const rows = users.map((u) =>
+      columns.map((c) => escape(u[c])).join(",")
+    );
+    const csv = [header, ...rows].join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="users${role ? `-${role}` : ""}.csv"`
+    );
+    return res.status(200).send(csv);
+  } catch (error) {
+    res.status(500).json({ message: "Error exporting users", error });
   }
 };
 
