@@ -66,6 +66,9 @@ function Header() {
         <a href="/events" className="hover:text-[#FFB238] transition">
           Events
         </a>
+        <a href="/organizations" className="hover:text-[#FFB238] transition">
+          Organizations
+        </a>
         <a href="/about" className="hover:text-[#FFB238] transition">
           About Us
         </a>
@@ -154,6 +157,12 @@ function Header() {
             className="text-blue-700 hover:text-orange-400 transition"
           >
             Events
+          </a>
+          <a
+            href="/organizations"
+            className="text-blue-700 hover:text-orange-400 transition"
+          >
+            Organizations
           </a>
           <a
             href="/about"

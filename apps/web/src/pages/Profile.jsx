@@ -358,51 +358,7 @@ export default function Profile() {
           </motion.div>
         </div>
 
-        {/* User Info Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-8 bg-gradient-to-br from-blue-900 to-blue-800 rounded-3xl shadow-xl text-white p-8"
-        >
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-[#FFB238] rounded-xl flex items-center justify-center">
-              <FaUser className="text-blue-900 text-xl" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold">Account Information</h3>
-              <p className="text-blue-200">Your current account details</p>
-            </div>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-              <div className="flex items-center gap-3 mb-2">
-                <FaUser className="text-[#FFB238]" />
-                <span className="font-semibold">Role</span>
-              </div>
-              <p className="text-blue-200 capitalize">{user.user_role || 'User'}</p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-              <div className="flex items-center gap-3 mb-2">
-                <FaEnvelope className="text-[#FFB238]" />
-                <span className="font-semibold">Email</span>
-              </div>
-              <p className="text-blue-200">{user.user_email}</p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-              <div className="flex items-center gap-3 mb-2">
-                <FaUserCircle className="text-[#FFB238]" />
-                <span className="font-semibold">Member Since</span>
-              </div>
-              <p className="text-blue-200">
-                {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-              </p>
-            </div>
-          </div>
-        </motion.div>
+       
       </div>
     </div>
   );

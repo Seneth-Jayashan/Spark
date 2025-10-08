@@ -310,7 +310,7 @@ export default function OrganizationCreate() {
                     name="city" 
                     value={formData.address.city} 
                     onChange={handleChange} 
-                    placeholder="New York" 
+                    placeholder="Colombo" 
                     className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition-all duration-200 text-gray-800" 
                   />
                 </div>
@@ -321,7 +321,7 @@ export default function OrganizationCreate() {
                     name="state" 
                     value={formData.address.state} 
                     onChange={handleChange} 
-                    placeholder="NY" 
+                    placeholder="WP" 
                     className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition-all duration-200 text-gray-800" 
                   />
                 </div>
@@ -343,7 +343,7 @@ export default function OrganizationCreate() {
                     name="country" 
                     value={formData.address.country} 
                     onChange={handleChange} 
-                    placeholder="United States" 
+                    placeholder="Sri Lanka" 
                     className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-blue-900 focus:bg-white outline-none transition-all duration-200 text-gray-800" 
                   />
                 </div>
@@ -360,7 +360,7 @@ export default function OrganizationCreate() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
-                {["facebook", "twitter", "linkedin", "instagram", "youtube"].map((platform) => (
+                {["facebook", "youtube"].map((platform) => (
                   <div key={platform} className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                       {socialIcons[platform]}

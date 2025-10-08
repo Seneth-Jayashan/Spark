@@ -15,6 +15,7 @@ import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./Components/ResetPassword";
+import Organizations from "./pages/organization";
 
 
 import VolunteerDashboard from "./routes/VolunteerDashboard";
@@ -49,6 +50,7 @@ function App() {
         <Route path="/logout" element={<LogoutPage />} />
         <Route path="/events" element={<Events />} />
         <Route path="/events/:event_id" element={<EventDetails />} />
+        <Route path="/organizations" element={<Organizations />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
        

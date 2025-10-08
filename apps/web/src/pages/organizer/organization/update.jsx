@@ -363,7 +363,7 @@ export default function UpdateOrganization() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
-                {["facebook", "twitter", "linkedin", "instagram", "youtube"].map((platform) => (
+                {["facebook", "youtube"].map((platform) => (
                   <div key={platform} className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                       {socialIcons[platform]}

@@ -1,3 +1,4 @@
+// src/pages/EventDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEvent } from "../contexts/EventContext";
@@ -21,11 +22,12 @@ L.Icon.Default.mergeOptions({
 export default function EventDetails() {
   const { event_id } = useParams();
   const navigate = useNavigate();
-  const { fetchEvent } = useEvent();
+  const { fetchEvent, getMembers } = useEvent();
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [joinedVolunteers, setJoinedVolunteers] = useState(0);
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -33,12 +35,21 @@ export default function EventDetails() {
         setLoading(true);
         setError("");
         const res = await fetchEvent(event_id);
-        if (res?.event) {
-          setEvent(res.event);
-        } else if (res) {
-          setEvent(res);
-        } else {
+
+        let evt = res?.event || res;
+        if (!evt) {
           setError("Failed to fetch event");
+          return;
+        }
+
+        setEvent(evt);
+
+        // Fetch joined volunteer count
+        try {
+          const membersRes = await getMembers(evt.event_id);
+          setJoinedVolunteers(membersRes.members?.length || 0);
+        } catch (err) {
+          setJoinedVolunteers(0);
         }
       } catch (err) {
         setError(err?.response?.data?.message || "Failed to fetch event");
@@ -46,6 +57,7 @@ export default function EventDetails() {
         setLoading(false);
       }
     };
+
     loadEvent();
   }, [event_id]);
 
@@ -115,6 +127,7 @@ export default function EventDetails() {
             Discover event information and plan your participation.
           </p>
         </motion.div>
+
         {/* Images */}
         <motion.div
           className="mb-8 flex justify-center"
@@ -222,8 +235,7 @@ export default function EventDetails() {
                   </div>
                 </div>
 
-                {(event.volunteer_count != null ||
-                  event.need_count != null) && (
+                {(joinedVolunteers != null || event.need_count != null) && (
                   <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl">
                     <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
                       <Users className="text-purple-700" />
@@ -233,7 +245,7 @@ export default function EventDetails() {
                         Volunteers
                       </p>
                       <p className="text-purple-700 font-semibold">
-                        {event.volunteer_count} / {event.need_count}
+                        {joinedVolunteers} / {event.need_count ?? 0}
                       </p>
                     </div>
                   </div>
@@ -243,7 +255,6 @@ export default function EventDetails() {
 
             {event.event_geolocation &&
               (() => {
-                // Determine location
                 let loc = { lat: 6.9271, lng: 79.8612 }; // default Colombo
                 if (typeof event.event_geolocation === "string") {
                   const [latStr, lngStr] = event.event_geolocation.split(",");
