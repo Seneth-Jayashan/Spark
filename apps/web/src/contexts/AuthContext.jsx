@@ -82,11 +82,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ---- RESET PASSWORD ----
-  const resetPassword = async (newPassword) => {
+  // Modified to accept the token as an argument
+  const resetPassword = async (token, newPassword) => { // Added 'token' argument
     try {
       setError(null);
-      const token = sessionStorage.getItem("accessToken");
-      const res = await api.post(`/auth/reset-password/${token}`, { password: newPassword });
+      // Removed: const token = sessionStorage.getItem("accessToken"); // No longer get token from storage
+      
+      // Use the token passed into the function for the API call
+      const res = await api.post(`/auth/reset-password/${token}`, { password: newPassword }); 
+      
       return res.data; // { message: "Password reset successful" }
     } catch (err) {
       const msg = err.response?.data?.message || "Reset password failed";

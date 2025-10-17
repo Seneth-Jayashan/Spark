@@ -1,24 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // Added useCallback
 import { useEvent } from "../../contexts/EventContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  FaCalendarAlt, 
-  FaMapMarkerAlt, 
-  FaClock, 
-  FaUsers, 
+import {
+  FaCalendarAlt,
+  FaMapMarkerAlt,
+  FaClock,
+  FaUsers,
   FaFilter,
   FaSearch,
   FaHeart,
   FaSpinner,
   FaExclamationTriangle,
-  FaEye
+  FaEye,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 
 export default function Events() {
-  const { events, fetchPublicEvents, loading, error, addMember, getEventsByUser } = useEvent();
+  const { events, fetchPublicEvents, loading, error, addMember, getEventsByUser } =
+    useEvent();
   const { user } = useAuth();
 
   const [filteredEvents, setFilteredEvents] = useState([]);
@@ -33,7 +34,7 @@ export default function Events() {
   // Fetch public events on mount
   useEffect(() => {
     fetchPublicEvents();
-  }, []);
+  }, [fetchPublicEvents]); // Added dependency
 
   // Fetch user's registered events when user is available
   useEffect(() => {
@@ -42,10 +43,28 @@ export default function Events() {
         setUserEventsLoading(true);
         try {
           const userEventsData = await getEventsByUser(user.user_id);
-          const registeredEventIds = (userEventsData.events || []).map(event => event.event_id);
+
+
+          // --- START OF UPDATE ---
+          // This logic robustly handles the API response.
+          // It works if userEventsData is { events: [...] } OR just [...]
+          // It also works if the API call failed and returned [] (from the context's catch block)
+          let eventsList = [];
+          if (Array.isArray(userEventsData)) {
+            eventsList = userEventsData;
+          } else if (userEventsData && Array.isArray(userEventsData.events)) {
+            eventsList = userEventsData.events;
+          }
+          // --- END OF UPDATE ---
+
+          const registeredEventIds = eventsList.map(
+            (event) => event.event_id
+          );
           setUserRegisteredEvents(registeredEventIds);
         } catch (err) {
-          console.error("Failed to fetch user events:", err);
+          // The context already logs the 404 error, but we'll log this too
+          console.error("Error in Events.jsx fetchUserEvents:", err);
+          setUserRegisteredEvents([]); // Ensure it's empty on any component-level error
         } finally {
           setUserEventsLoading(false);
         }
@@ -53,7 +72,7 @@ export default function Events() {
     };
 
     fetchUserEvents();
-  }, [user?.user_id]);
+  }, [user?.user_id, getEventsByUser]); // Added getEventsByUser to dependency array
 
   // Populate unique locations & filter events
   useEffect(() => {
@@ -88,25 +107,25 @@ export default function Events() {
         text: "Please login to register for this event!",
         confirmButtonColor: "#0B2545",
         background: "#ffffff",
-        color: "#0B2545"
+        color: "#0B2545",
       });
       return;
     }
 
     // Add to registering events set
-    setRegisteringEvents(prev => new Set([...prev, event_id]));
+    setRegisteringEvents((prev) => new Set([...prev, event_id]));
 
     try {
       await addMember(event_id, user.user_id);
       // Add the event to user's registered events
-      setUserRegisteredEvents(prev => [...prev, event_id]);
+      setUserRegisteredEvents((prev) => [...prev, event_id]);
       Swal.fire({
         icon: "success",
         title: "Registration Successful!",
         text: "You have been registered for this event.",
         confirmButtonColor: "#0B2545",
         background: "#ffffff",
-        color: "#0B2545"
+        color: "#0B2545",
       });
     } catch (err) {
       Swal.fire({
@@ -115,11 +134,11 @@ export default function Events() {
         text: "Failed to register. Please try again later.",
         confirmButtonColor: "#0B2545",
         background: "#ffffff",
-        color: "#0B2545"
+        color: "#0B2545",
       });
     } finally {
       // Remove from registering events set
-      setRegisteringEvents(prev => {
+      setRegisteringEvents((prev) => {
         const newSet = new Set(prev);
         newSet.delete(event_id);
         return newSet;
@@ -132,10 +151,10 @@ export default function Events() {
     return userRegisteredEvents.includes(event_id);
   };
 
-  if (loading) {
+  if (loading && events.length === 0) { // Only show main loader if events are not yet loaded
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -150,7 +169,7 @@ export default function Events() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md mx-4"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -168,33 +187,9 @@ export default function Events() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-amber-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-lg mb-4">
-            <div className="w-10 h-10 bg-[#FFB238] rounded-xl flex items-center justify-center">
-              <FaCalendarAlt className="text-blue-900 text-lg" />
-            </div>
-            <h1 className="text-2xl font-bold text-blue-900">Available Events</h1>
-            {userEventsLoading && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <FaSpinner className="animate-spin" />
-                <span>Loading registrations...</span>
-              </div>
-            )}
-          </div>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover amazing volunteer opportunities and make a difference in your community.
-          </p>
-        </motion.div>
-
         {/* Filters */}
         <motion.div
-          className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 mb-8"
+          className="bg-white rounded-3xl shadow-lg border border-gray-100 p-2 mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -263,7 +258,9 @@ export default function Events() {
                 <div className="relative h-48 overflow-hidden">
                   {event.event_images && event.event_images.length > 0 ? (
                     <img
-                      src={`${import.meta.env.VITE_SERVER_URL}${event.event_images[0]}`}
+                      src={`${import.meta.env.VITE_SERVER_URL}${
+                        event.event_images[0]
+                      }`}
                       alt={event.event_name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -278,7 +275,7 @@ export default function Events() {
                   <h3 className="text-xl font-bold text-blue-900 mb-3 group-hover:text-[#FFB238] transition-colors">
                     {event.event_name}
                   </h3>
-                  
+
                   <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">
                     {event.event_description}
                   </p>
@@ -291,12 +288,12 @@ export default function Events() {
                         {event.event_date?.split("T")[0]}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 text-gray-600">
                       <FaClock className="text-blue-900" />
                       <span className="text-sm">{event.event_time}</span>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 text-gray-600">
                       <FaMapMarkerAlt className="text-blue-900" />
                       <span className="text-sm">{event.event_venue}</span>
@@ -308,13 +305,17 @@ export default function Events() {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate(`/dashboard/volunteer/event/${event.event_id}`)}
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/volunteer/event/${event.event_id}`
+                        )
+                      }
                       className="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-2xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
                     >
                       <FaEye />
                       View Details
                     </motion.button>
-                    
+
                     {isUserRegistered(event.event_id) ? (
                       <motion.button
                         disabled
@@ -359,12 +360,13 @@ export default function Events() {
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FaCalendarAlt className="text-gray-400 text-3xl" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">No Events Found</h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                No Events Found
+              </h3>
               <p className="text-gray-600 max-w-md mx-auto">
-                {locationFilter || dateFilter 
+                {locationFilter || dateFilter
                   ? "No events match your current filters. Try adjusting your search criteria."
-                  : "There are currently no events available. Check back later for new opportunities!"
-                }
+                  : "There are currently no events available. Check back later for new opportunities!"}
               </p>
               {(locationFilter || dateFilter) && (
                 <motion.button

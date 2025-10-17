@@ -29,6 +29,7 @@ export const OrgProvider = ({ children }) => {
       const response = await api.get("/organization/my");
       // Assuming API returns a single object:
       setCurrentOrg(response.data || null);
+      console.log(response.data);
       return response.data;
     } catch (err) {
       console.error(err);

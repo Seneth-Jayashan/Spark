@@ -1,6 +1,7 @@
 const Organization = require('../models/organization');
 const Member = require('../models/orgMember');
 const User = require('../models/user');
+const {sendOrgWelcomeEmail} = require('../utils/emailSender');
 
 exports.getAllOrganization = async (req, res) => {
     try {
@@ -48,7 +49,6 @@ exports.createOrganization = async (req, res) => {
     const parsedSocialLinks = social_links ? JSON.parse(social_links) : {};
 
     const org_owner = req.user.id;
-
     // Check if user already has an org
     const ownOrg = await Organization.findOne({ org_owner });
     if (ownOrg) {
@@ -70,6 +70,7 @@ exports.createOrganization = async (req, res) => {
     });
 
     await newOrganization.save();
+    sendOrgWelcomeEmail(contact_email,'Admin',org_name)
     res.status(200).json({ message: "Organization created successfully", organization: newOrganization });
   } catch (error) {
     res.status(500).json({ message: error.message });

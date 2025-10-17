@@ -1,13 +1,19 @@
 // src/contexts/EventContext.jsx
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback, // 1. Import useCallback
+} from "react";
 import api from "../api/axios";
 
 const EventContext = createContext();
 export const useEvent = () => useContext(EventContext);
 
 export const EventProvider = ({ children }) => {
-  const [events, setEvents] = useState([]);           
-  const [currentEvent, setCurrentEvent] = useState(null); 
+  const [events, setEvents] = useState([]);
+  const [currentEvent, setCurrentEvent] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -20,15 +26,25 @@ export const EventProvider = ({ children }) => {
   }, []);
 
   // ----------------------------
-  // Fetch all events
+  // 2. Wrap ALL functions in useCallback
   // ----------------------------
-  const fetchEvents = async () => {
+const fetchEvents = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
       const res = await api.get("/event");
-      setEvents(res.data || []);
-      return res.data;
+      
+      // --- START FIX ---
+      // 1. Extract the array from the response object
+      const eventsList = res.data?.events || []; 
+      
+      // 2. Set the context state with the array, not the object
+      setEvents(eventsList); 
+      
+      // 3. Return only the array, which is what the dashboard expects
+      return eventsList; 
+      // --- END FIX ---
+
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Failed to fetch events");
@@ -36,15 +52,13 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // 3. Add empty dependency array
 
   // ----------------------------
-  // Fetch single event by ID
-  // ----------------------------
-  const fetchEvent = async (event_id) => {
+  const fetchEvent = useCallback(async (event_id) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
       const res = await api.get(`/event/${event_id}`);
       const evt = res.data?.event || res.data;
       setCurrentEvent(evt);
@@ -56,15 +70,13 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // ----------------------------
-  // Fetch all public events
-  // ----------------------------
-  const fetchPublicEvents = async () => {
+  const fetchPublicEvents = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
       const res = await api.get("/event/public");
       setEvents(res.data.events || []);
       return res.data;
@@ -76,15 +88,13 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // ----------------------------
-  // Create a new event
-  // ----------------------------
-  const createEvent = async (formData) => {
+  const createEvent = useCallback(async (formData) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
       const res = await api.post("/event/event", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -96,15 +106,13 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // ----------------------------
-  // Update an existing event
-  // ----------------------------
-  const updateEvent = async (event_id, formData) => {
+  const updateEvent = useCallback(async (event_id, formData) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
       const res = await api.put(`/event/${event_id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -117,34 +125,33 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // ----------------------------
-  // Delete an event
-  // ----------------------------
-  const deleteEvent = async (event_id) => {
-    try {
+  const deleteEvent = useCallback(
+    async (event_id) => {
       setLoading(true);
       setError("");
-      await api.delete(`/event/${event_id}`);
-      setEvents((prev) => prev.filter((evt) => evt.event_id !== event_id));
-      if (currentEvent?.event_id === event_id) setCurrentEvent(null);
-    } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Failed to delete event");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        await api.delete(`/event/${event_id}`);
+        setEvents((prev) => prev.filter((evt) => evt.event_id !== event_id));
+        if (currentEvent?.event_id === event_id) setCurrentEvent(null);
+      } catch (err) {
+        console.error(err);
+        setError(err.response?.data?.message || "Failed to delete event");
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentEvent] // This function depends on currentEvent
+  );
 
   // ----------------------------
-  // Update event status
-  // ----------------------------
-  const updateEventStatus = async (event_id, status) => {
+  const updateEventStatus = useCallback(async (event_id, status) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
       const res = await api.put(`/event/${event_id}/status`, { status });
       setEvents((prev) =>
         prev.map((evt) => (evt.event_id === event_id ? res.data : evt))
@@ -158,15 +165,13 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // ----------------------------
-  // Event members
-  // ----------------------------
-  const addMember = async (event_id, user_id) => {
+  const addMember = useCallback(async (event_id, user_id) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
       const res = await api.post(`/event/${event_id}/add-member`, { user_id });
       return res.data;
     } catch (err) {
@@ -176,13 +181,16 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const removeMember = async (event_id, user_id) => {
+  // ----------------------------
+  const removeMember = useCallback(async (event_id, user_id) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
-      const res = await api.delete(`/event/${event_id}/remove-member`, { data: { user_id } });
+      const res = await api.delete(`/event/${event_id}/remove-member`, {
+        data: { user_id },
+      });
       return res.data;
     } catch (err) {
       console.error(err);
@@ -191,12 +199,13 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const removeAllMembers = async (event_id) => {
+  // ----------------------------
+  const removeAllMembers = useCallback(async (event_id) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
       const res = await api.delete(`/event/${event_id}/remove-all-members`);
       return res.data;
     } catch (err) {
@@ -206,12 +215,13 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getMembers = async (event_id) => {
+  // ----------------------------
+  const getMembers = useCallback(async (event_id) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
       const res = await api.get(`/event/${event_id}/members`);
       return res.data;
     } catch (err) {
@@ -221,31 +231,42 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getEventsByUser = async (user_id) => {
+
+  const getEventsByUser = useCallback(async (user_id) => {
+
     try {
-      setLoading(true);
-      setError("");
       const res = await api.get(`/event/member/${user_id}`);
-      return res.data;
+      return res.data; // This will be { events: [...] } or just [...]
+    
     } catch (err) {
-      console.error(err);
+      if (err.response && err.response.status === 404) {
+
+        console.log("No registered events found for user (404 caught). Returning [].");
+        return [];
+      }
+      
+
+      console.error("A real error occurred fetching user events:", err);
       setError(err.response?.data?.message || "Failed to fetch user's events");
       return [];
-    } finally {
-      setLoading(false);
-    }
-  };
+    
+    } 
+    // We remove the 'finally' block because we are not
+    // using the global 'setLoading(false)' for this function.
+  }, []); // End of useCallback
 
   // ----------------------------
-  // Participation
-  // ----------------------------
-  const updateParticipation = async (eventId, userId, status) => {
+  const updateParticipation = useCallback(async (eventId, userId, status) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
-      const res = await api.post("/participation/update", { eventId, userId, status });
+      const res = await api.post("/participation/update", {
+        eventId,
+        userId,
+        status,
+      });
       return res.data;
     } catch (err) {
       console.error(err);
@@ -254,23 +275,24 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getParticipationForEvent = async (eventId) => {
+  // ----------------------------
+  const getParticipationForEvent = useCallback(async (eventId) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError("");
-      const res = await api.get(`/participation/event/${eventId}`); // backend should support this
-      console.log('backend vols :', res.data);
+      const res = await api.get(`/participation/event/${eventId}`);
+      console.log("backend vols :", res.data);
       return res.data;
-    } catch (err) {
+    } catch (err){
       console.error(err);
       setError(err.response?.data?.message || "Failed to fetch participation");
       return [];
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return (
     <EventContext.Provider
