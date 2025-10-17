@@ -6,7 +6,7 @@ import AdminUsers from "../pages/admin/Users";
 import AdminAdmins from "../pages/admin/Admins";
 import Profile from "../pages/Profile";
 import ContactUs from "../pages/admin/contactUsreply/contactus";
-import AdminContactUsReply from "../pages/admin/contactUsreply/contactUsformreply";
+import AdminContactUsReply from "../pages/admin/contactUsreply/contactusformreply.jsx";
 
 
 
