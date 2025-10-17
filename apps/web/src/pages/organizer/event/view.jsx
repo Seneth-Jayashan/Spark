@@ -26,7 +26,7 @@ L.Icon.Default.mergeOptions({
 export default function ViewEvent() {
   const { id } = useParams();
   const { getUser } = useAuth();
-  const { fetchEvent, getMembers, loading } = useEvent();
+  const { fetchEvent, getMembers, loading,updateParticipation,getParticipationForEvent } = useEvent();
 
   const [event, setEvent] = useState(null);
   const [volunteers, setVolunteers] = useState([]);
@@ -79,36 +79,54 @@ export default function ViewEvent() {
     fetchData();
   }, [id]);
 
-  // Load volunteer details
-  useEffect(() => {
-    async function loadVolunteerDetails() {
-      if (volunteers.length === 0) return;
-      setLoadingVolunteers(true);
+useEffect(() => {
+  async function loadVolunteerDetails() {
+    if (volunteers.length === 0) return;
+    setLoadingVolunteers(true);
 
-      const details = await Promise.all(
-        volunteers.map((v) => getUser(v.user_id))
-      );
+    // 1️⃣ Load all user details
+    const details = await Promise.all(
+      volunteers.map((v) => getUser(v.user_id))
+    );
 
-      const filtered = details.filter(Boolean);
-      setVolunteerDetails(filtered);
+    // 2️⃣ Load participation records for this event
+    const participations = await getParticipationForEvent(event._id);
 
-      const initialStatus = {};
-      filtered.forEach((v) => {
-        initialStatus[v.user_id] = "Not Participated";
-      });
-      setParticipationStatus(initialStatus);
-      setLoadingVolunteers(false);
-    }
+    console.log("Participation Data:", participations);
 
-    loadVolunteerDetails();
-  }, [volunteers]);
+    // 3️⃣ Merge volunteers with participation info
+    const merged = details.map((user) => {
+      const match = participations.find((p) => p.userId === user.id || p.userId === user._id);
+      return {
+        ...user,
+        status: match ? match.status : "Not Participated",
+      };
+    });
+
+    // 4️⃣ Store results
+    setVolunteerDetails(merged);
+
+    // 5️⃣ Initialize participation status object
+    const initialStatus = {};
+    merged.forEach((v) => {
+      initialStatus[v.id || v._id] = v.status;
+    });
+    setParticipationStatus(initialStatus);
+
+    setLoadingVolunteers(false);
+  }
+
+  loadVolunteerDetails();
+}, [volunteers, event]);
+
 
   
   const bulkUpdateParticipation = (newStatus) => {
     setParticipationStatus((prev) => {
       const updated = { ...prev };
       selectedVolunteers.forEach((id) => {
-        updated[id] = newStatus;
+        console.log('Event Data : ', event._id,id,newStatus);
+        updateParticipation(event._id,id,newStatus);
       });
       return updated;
     });

@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const participationSchema = new mongoose.Schema(
   {
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: Number, required: true },
     status: { type: String, enum: ["Participated", "Not Participated"], default: "Not Participated" },
   },
   { timestamps: true }

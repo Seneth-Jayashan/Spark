@@ -261,6 +261,7 @@ export const EventProvider = ({ children }) => {
       setLoading(true);
       setError("");
       const res = await api.get(`/participation/event/${eventId}`); // backend should support this
+      console.log('backend vols :', res.data);
       return res.data;
     } catch (err) {
       console.error(err);
