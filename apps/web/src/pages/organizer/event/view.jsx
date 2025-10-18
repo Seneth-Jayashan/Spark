@@ -610,3 +610,95 @@ const VolunteersTab = ({
     </div>
   );
 };
+
+
+const EventAnalytics = ({ event, volunteers, participationStatus }) => {
+  // Calculate stats
+  const participatedCount = Object.values(participationStatus).filter(
+    (s) => s === "Participated"
+  ).length;
+  const totalRegistered = volunteers.length;
+  const totalNeeded = event.need_count ?? 0;
+  const participationRate =
+    totalRegistered > 0 ? ((participatedCount / totalRegistered) * 100).toFixed(1) : 0;
+
+  // Prepare data for charts
+  const pieData = [
+    { name: "Participated", value: participatedCount },
+    { name: "Not Participated", value: totalRegistered - participatedCount },
+  ];
+
+  const COLORS = ["#34D399", "#F87171"];
+
+  const barData = [
+    { name: "Total Volunteers", count: totalRegistered },
+    { name: "Needed Volunteers", count: totalNeeded },
+  ];
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold text-blue-600 mb-6">Event Analytics</h2>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-gray-100 p-4 rounded-xl border border-gray-200 shadow-sm text-center">
+          <p className="text-sm text-gray-500">Total Needed</p>
+          <p className="text-2xl font-bold">{totalNeeded}</p>
+        </div>
+        <div className="bg-gray-100 p-4 rounded-xl border border-gray-200 shadow-sm text-center">
+          <p className="text-sm text-gray-500">Registered</p>
+          <p className="text-2xl font-bold">{totalRegistered}</p>
+        </div>
+        <div className="bg-gray-100 p-4 rounded-xl border border-gray-200 shadow-sm text-center">
+          <p className="text-sm text-gray-500">Participated</p>
+          <p className="text-2xl font-bold">{participatedCount}</p>
+        </div>
+        <div className="bg-gray-100 p-4 rounded-xl border border-gray-200 shadow-sm text-center">
+          <p className="text-sm text-gray-500">Participation Rate</p>
+          <p className="text-2xl font-bold">{participationRate}%</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Participation Pie Chart */}
+        <div className="bg-gray-100 p-4 rounded-xl shadow-sm border border-gray-200">
+          <h3 className="font-semibold mb-4">Participation Status</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                label
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Bar Chart for Volunteers vs Needed */}
+        <div className="bg-gray-100 p-4 rounded-xl shadow-sm border border-gray-200">
+          <h3 className="font-semibold mb-4">Volunteers vs Needed</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={barData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#3B82F6" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+};
+
