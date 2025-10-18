@@ -6,7 +6,7 @@ const eventRoutes = require('./routes/eventRoutes');
 const contactRoutes = require('./routes/contactroute');
 const chatRoutes = require('./routes/chatRoute');
 const VolunteerParticipationRoutes = require('./routes/VolunteerParticipation');
-
+const NotificationRoutes = require('./routes/notificationRoute');
 
 const router = Router();
 
@@ -16,6 +16,7 @@ router.use('/event', eventRoutes);
 router.use('/contact', contactRoutes);
 router.use('/chat', chatRoutes);
 router.use('/participation', VolunteerParticipationRoutes);
+router.use('/notifications', NotificationRoutes)
 
 
 

@@ -2,6 +2,7 @@ const Organization = require('../models/organization');
 const Member = require('../models/orgMember');
 const User = require('../models/user');
 const {sendOrgWelcomeEmail} = require('../utils/emailSender');
+const { createNotification } = require('../utils/notification.js');
 
 exports.getAllOrganization = async (req, res) => {
     try {
@@ -70,7 +71,15 @@ exports.createOrganization = async (req, res) => {
     });
 
     await newOrganization.save();
-    sendOrgWelcomeEmail(contact_email,'Admin',org_name)
+    await sendOrgWelcomeEmail(contact_email,'Admin',org_name);
+    await createNotification({
+        title: 'New Organization Created', 
+        message: `${org_name} Created\nType - ${org_type}\nContact - ${contact_phone}`, 
+        type: 'info',
+        targetRole: 'admin',
+        isBroadcast: true
+    });
+
     res.status(200).json({ message: "Organization created successfully", organization: newOrganization });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -79,18 +88,24 @@ exports.createOrganization = async (req, res) => {
 
 
 exports.getOwnOrg = async (req, res) => {
-    try {
-        const org_owner = req.user.id;
-        const organization = await Organization.findOne({ org_owner});
-
-        if (!organization) {
-            return res.status(404).json({ message: 'No Organizations' });
-        }
-
-        res.status(200).json({ message: 'Organization found', organization });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const ownerId = req.user.id; 
+    if (!ownerId) {
+      return res.status(401).json({ message: "Authentication error: User ID not found." });
     }
+
+    const organization = await Organization.findOne({ org_owner: ownerId });
+
+    if (!organization) {
+      return res.status(404).json({ message: 'No organization found for this user.' });
+    }
+
+    res.status(200).json({ message: 'Organization found', organization });
+
+  } catch (error) {
+    console.error("Error fetching organization:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 };
 
 exports.updateOrganization = async (req, res) => {
@@ -122,10 +137,19 @@ exports.updateOrganization = async (req, res) => {
       return res.status(404).json({ message: "Organization not found" });
     }
 
+    await createNotification({
+        title: `${updatedOrganization.org_name} Updated`, 
+        message: `${updatedOrganization.org_name} Created\nType - ${updatedOrganization.org_type}\nContact - ${updatedOrganization.contact_phone}`, 
+        type: 'info',
+        targetRole: 'admin',
+        isBroadcast: true
+    });
+
     res.status(200).json({
       message: "Organization updated successfully",
       organization: updatedOrganization,
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -163,6 +187,15 @@ exports.deleteOrganization = async (req, res) => {
         if (!deletedOrganization) {
             return res.status(404).json({ message: 'Organization not found' });
         }
+
+        await createNotification({
+            title: `${deletedOrganization.org_name} Updated`, 
+            message: `${deletedOrganization.org_name} Deleted by Administration`, 
+            type: 'warning',
+            targetRole: 'organizer',
+            recipient: deletedOrganization.org_owner,
+            isBroadcast: false
+        });
 
         res.status(200).json({ message: 'Organization deleted successfully' });
     } catch (error) {

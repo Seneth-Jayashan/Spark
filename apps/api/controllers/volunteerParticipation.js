@@ -1,4 +1,8 @@
 const Participation = require("../models/volunteerParticipation");
+const Event = require('../models/event');
+const User = require('../models/user');
+const {createNotification} = require('../utils/notification');
+
 
 // Save or update participation status
 exports.updateParticipation = async (req, res) => {
@@ -8,14 +12,23 @@ exports.updateParticipation = async (req, res) => {
     return res.status(400).json({ message: "Event ID, User ID, and status are required" });
   }
 
-  console.log(eventId,userId,status);
-
   try {
     const participation = await Participation.findOneAndUpdate(
       { eventId, userId },
       { status },
       { new: true, upsert: true }
     );
+
+    const event = await Event.findOne({event_id:eventId});
+
+    await createNotification({
+        title: `Volunteer Participation Updated`, 
+        message: `Event - ${event.event_name}\nStatus - ${status}`, 
+        type: 'info',
+        targetRole: 'volunteer',
+        recipient: userId,
+        isBroadcast: true
+    });
 
     res.json({ success: true, participation });
   } catch (error) {

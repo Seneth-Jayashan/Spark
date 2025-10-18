@@ -1,6 +1,8 @@
 const Event = require('../models/event');
 const Member = require('../models/eventMember');
 const Organization = require('../models/organization');
+const User = require('../models/user');
+const {createNotification} = require('../utils/notification');
 
 // Helper: combine event_date and event_time into a JS Date for comparison
 function getEventEndDateTime(event) {
@@ -124,6 +126,14 @@ exports.addEvent = async (req, res) => {
         });
 
         await event.save();
+
+        await createNotification({
+            title: 'New Event Created', 
+            message: `${event_name}\nTime - ${event_time}\nDate - ${event_date}`, 
+            type: 'info',
+            targetRole: 'volunteer',
+            isBroadcast: true
+        });
         res.status(200).json({ message: "Event created successfully", event });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -198,11 +208,8 @@ exports.addMember = async (req, res) => {
             return res.status(404).json({ message: 'Event not found' });
         }
 
-        // ❌ REMOVE this global check (prevents multiple events)
-        // const member = await Member.findOne({ user_id });
-        // if (member) {
-        //     return res.status(403).json({ message: 'User is already a member' });
-        // }
+        const user =  await User.findOne({user_id});
+        const org = await Organization.findOne({org_id:event.org_id});
 
         // ✅ Only check membership for this event
         const eventMember = await Member.findOne({ user_id, event_id });
@@ -218,6 +225,15 @@ exports.addMember = async (req, res) => {
 
         await newMember.save();
 
+        await createNotification({
+            title: 'New Volunteer Registered', 
+            message: `${event.event_name}\nVolunteer - ${user.user_first_name} ${user.user_last_name}\nCount - ${event.volunteer_count}/${event.need_count}`, 
+            type: 'info',
+            targetRole: 'organizer',
+            recipient: org.org_owner,
+            isBroadcast: true
+        });
+        
         res.status(200).json({ message: 'Member added successfully', member: newMember });
     } catch (error) {
         res.status(500).json({ message: error.message });

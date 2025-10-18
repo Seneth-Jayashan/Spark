@@ -7,7 +7,7 @@ const organizationSchema = new Schema({
     org_name: { type: String, required: true },
     org_description: { type: String, required: true },
     org_logo: { type: String, required: true },
-    org_owner: { type: Number, required: true, unique: true }, // links to User table
+    org_owner: { type: Number, required: true, unique: true }, 
     org_status: { type: Boolean, default: true },
 
     // 📌 Extended fields

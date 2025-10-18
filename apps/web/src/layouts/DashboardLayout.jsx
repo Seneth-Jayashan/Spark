@@ -8,6 +8,7 @@ import OrgAdminSidebar from "../Components/sidebar/OrgAdminSidebar";
 import StaffSidebar from "../Components/sidebar/StaffSidebar";
 import VolunteerSidebar from "../Components/sidebar/VolunteerSidebar";
 import GuestSidebar from "../Components/sidebar/GuestSidebar";
+import Notifications from '../pages/Notifications'; 
 
 const DashboardLayout = () => {
   const { user, loading } = useContext(AuthContext);
@@ -38,7 +39,6 @@ const DashboardLayout = () => {
     }
   };
 
-  // Motion variants for main content
   const contentVariants = {
     open: {
       x: 0,
@@ -58,23 +58,40 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
       {renderSidebar()}
 
-      {/* Spacer to push main content */}
       <motion.div
         animate={{ width: sidebarWidth }}
         transition={{ type: "spring", stiffness: 200, damping: 25 }}
         style={{ flexShrink: 0 }}
       />
 
-      {/* Main content */}
       <motion.div
-        className="flex-1 p-6 min-h-screen bg-gray-100"
+        className="flex-1 flex flex-col min-h-screen" 
         variants={contentVariants}
         animate={isOpen ? "open" : "collapsed"}
       >
-        <Outlet />
+        {/* --- Header --- */}
+        <header className="flex justify-between items-center p-4 bg-white shadow-sm sticky top-0 z-10">
+          <div>
+            <span className="text-lg font-semibold text-gray-700">
+              Welcome, {user?.user_first_name || 'User'}
+            </span>
+          </div>
+          <div className="flex items-center space-x-4">
+            
+            <Notifications /> 
+            
+            <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
+              {user?.user_first_name?.[0]?.toUpperCase() || 'U'}
+            </div>
+          </div>
+        </header>
+
+        {/* --- Main Page Content --- */}
+        <main className="p-6 flex-1 overflow-y-auto bg-gray-100">
+          <Outlet />
+        </main>
       </motion.div>
     </div>
   );
