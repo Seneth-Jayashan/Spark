@@ -90,7 +90,7 @@ useEffect(() => {
     );
 
     // 2️⃣ Load participation records for this event
-    const participations = await getParticipationForEvent(event._id);
+    const participations = await getMembers(event._id);
 
     console.log("Participation Data:", participations);
 
