@@ -75,16 +75,6 @@ function Header() {
         <a href="/contact" className="hover:text-[#FFB238] transition">
           Contact
         </a>
-
-        {/* ✅ Role-based Dashboard link */}
-        {user && (
-          <a
-            href={getDashboardLink()}
-            className="hover:text-[#FFB238] transition"
-          >
-            Dashboard
-          </a>
-        )}
       </nav>
 
       {/* Auth Buttons */}
