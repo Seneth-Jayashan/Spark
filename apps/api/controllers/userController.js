@@ -92,6 +92,26 @@ exports.getUsers = async (req, res) => {
     if (!users || users.length === 0) {
       return res.status(404).json({ message: "No users found" });
     }
+
+    // If fetching organizers, include their organization information
+    if (role === "organizer") {
+      const Organization = require("../models/organization");
+      const usersWithOrg = await Promise.all(
+        users.map(async (user) => {
+          const organization = await Organization.findOne({ org_owner: user.user_id });
+          return {
+            ...user.toObject(),
+            organization: organization ? {
+              org_id: organization.org_id,
+              org_name: organization.org_name,
+              org_status: organization.org_status
+            } : null
+          };
+        })
+      );
+      return res.status(200).json(usersWithOrg);
+    }
+
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: "Error fetching users", error });

@@ -199,6 +199,9 @@ export default function AdminUsers({ role = "volunteer" }) {
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">User</th>
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Email</th>
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Phone</th>
+                {role === "organizer" && (
+                  <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Organization</th>
+                )}
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -249,6 +252,25 @@ export default function AdminUsers({ role = "volunteer" }) {
                       <span className="text-gray-400">Not provided</span>
                     )}
                   </td>
+                  {role === "organizer" && (
+                    <td className="px-6 py-4">
+                      {u.organization ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-gray-900 font-medium">{u.organization.org_name}</span>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                            u.organization.org_status 
+                              ? "bg-green-50 text-green-700" 
+                              : "bg-red-50 text-red-700"
+                          }`}>
+                            
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 italic">No organization</span>
+                      )}
+                    </td>
+                  )}
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
                       String(u.user_status).toLowerCase() === "active"
