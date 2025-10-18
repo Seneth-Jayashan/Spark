@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function AdminOrganizations() {
   const [orgs, setOrgs] = useState([]);
@@ -126,9 +128,50 @@ export default function AdminOrganizations() {
     }
   };
 
-  const downloadCsv = () => {
-    const base = import.meta.env.VITE_API_URL;
-    window.open(`${base}/organization/export`, "_blank");
+  const downloadCsv = async () => {
+    try {
+      const res = await api.get(`/organization/export`, { responseType: "blob" });
+      const blob = new Blob([res.data], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `organizations_export.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Failed to export CSV");
+    }
+  };
+
+  const downloadPdf = () => {
+    const doc = new jsPDF();
+    const ts = new Date().toLocaleString();
+    doc.setFontSize(16);
+    doc.text("Organizations Report", 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${ts}`, 14, 22);
+
+    const headers = [["Name", "Type", "Industry", "Email", "Phone", "Status"]];
+    const rows = orgs.map((o) => [
+      o.org_name || "",
+      o.org_type || "",
+      o.industry || "",
+      o.contact_email || "",
+      o.contact_phone || "",
+      o.org_status ? "Active" : "Inactive",
+    ]);
+
+    autoTable(doc, {
+      startY: 30,
+      head: headers,
+      body: rows,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [30, 64, 175] },
+    });
+
+    doc.save("organizations_report.pdf");
   };
 
   return (
@@ -148,6 +191,15 @@ export default function AdminOrganizations() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Export CSV
+          </button>
+          <button 
+            onClick={downloadPdf} 
+            className="px-4 py-2.5 bg-blue-900 hover:bg-blue-800 text-white rounded-lg shadow-md transition-all duration-200 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export PDF
           </button>
           <button 
             onClick={fetchOrgs} 
