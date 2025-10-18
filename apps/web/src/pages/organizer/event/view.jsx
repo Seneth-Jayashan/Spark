@@ -39,98 +39,122 @@ export default function ViewEvent() {
 
   // Fetch event + volunteers
   useEffect(() => {
-    if (!id) return;
+    if (!id) return;
 
-    const fetchData = async () => {
-      try {
-        const data = await fetchEvent(id);
-        const ev = data?.event || data;
-        setEvent(ev);
+    const fetchData = async () => {
+      try {
+        const data = await fetchEvent(id);
+        const ev = data?.event || data;
+        setEvent(ev);
 
-        // Parse geolocation
-        let geo = null;
-        if (ev?.event_geolocation) {
-          if (typeof ev.event_geolocation === "string") {
-            const [latStr, lngStr] = ev.event_geolocation.split(",");
-            const lat = parseFloat(latStr);
-            const lng = parseFloat(lngStr);
-            if (!isNaN(lat) && !isNaN(lng)) geo = { lat, lng };
-          } else if (
-            typeof ev.event_geolocation === "object" &&
-            ev.event_geolocation.lat &&
-            ev.event_geolocation.lng
-          ) {
-            geo = {
-              lat: parseFloat(ev.event_geolocation.lat),
-              lng: parseFloat(ev.event_geolocation.lng),
-            };
-          }
-        }
-        setLocation(geo || { lat: 6.9271, lng: 79.8612 });
+        // ... (geolocation parsing is fine) ...
+        let geo = null;
+        if (ev?.event_geolocation) {
+          if (typeof ev.event_geolocation === "string") {
+            const [latStr, lngStr] = ev.event_geolocation.split(",");
+            const lat = parseFloat(latStr);
+            const lng = parseFloat(lngStr);
+            if (!isNaN(lat) && !isNaN(lng)) geo = { lat, lng };
+          } else if (
+            typeof ev.event_geolocation === "object" &&
+            ev.event_geolocation.lat &&
+            ev.event_geolocation.lng
+          ) {
+            geo = {
+              lat: parseFloat(ev.event_geolocation.lat),
+              lng: parseFloat(ev.event_geolocation.lng),
+            };
+          }
+        }
+        setLocation(geo || { lat: 6.9271, lng: 79.8612 });
 
-        // Fetch volunteers
-        const members = await getMembers(id);
-        setVolunteers(members?.members || []);
-      } catch (error) {
-        console.error("Error fetching event or members:", error);
-      }
-    };
+        // Fetch volunteers
+        const members = await getMembers(id);
+        setVolunteers(members?.members || []);
+      } catch (error) {
+        console.error("Error fetching event or members:", error);
+      }
+    };
 
-    fetchData();
-  }, [id]);
+    fetchData();
+  }, [id, fetchEvent, getMembers]);
 
-useEffect(() => {
-  async function loadVolunteerDetails() {
-    if (volunteers.length === 0) return;
-    setLoadingVolunteers(true);
+  useEffect(() => {
+    async function loadVolunteerDetails() {
+      if (!volunteers || volunteers.length === 0 || !event) return;
+      setLoadingVolunteers(true);
+      try {
+          // 1️⃣ Load all user details
+          const details = await Promise.all(
+            volunteers.map((v) => getUser(v.user_id))
+          );
 
-    // 1️⃣ Load all user details
-    const details = await Promise.all(
-      volunteers.map((v) => getUser(v.user_id))
-    );
+          // 2️⃣ Load participation records
+          const participations = await getParticipationForEvent(event.event_id);
+          const merged = details.map((user, index) => {
 
-    // 2️⃣ Load participation records for this event
-    const participations = await getMembers(event._id);
-
-    console.log("Participation Data:", participations);
-
-    // 3️⃣ Merge volunteers with participation info
-    const merged = details.map((user) => {
-      const match = participations.find((p) => p.userId === user.id || p.userId === user._id);
-      return {
-        ...user,
-        status: match ? match.status : "Not Participated",
-      };
-    });
-
-    // 4️⃣ Store results
-    setVolunteerDetails(merged);
-
-    // 5️⃣ Initialize participation status object
-    const initialStatus = {};
-    merged.forEach((v) => {
-      initialStatus[v.id || v._id] = v.status;
-    });
-    setParticipationStatus(initialStatus);
-
-    setLoadingVolunteers(false);
-  }
-
-  loadVolunteerDetails();
-}, [volunteers, event]);
+           const match = participations.find((p) => {
+              const participationUserId = p.user_id ? p.user_id.user_id : undefined;              
+              // Use '==' for type-insensitive comparison (e.g., 1 == "1")
+              return participationUserId == user.user_id;
+            });
 
 
+            const finalUser = {
+              ...user,
+              status: match ? match.status : "Not Participated",
+            };
+            return finalUser;
+          });
+
+          setVolunteerDetails(merged);
+
+          // 5️⃣ Initialize participation status object
+          const initialStatus = {};
+          merged.forEach((v) => {
+            initialStatus[v.user_id] = v.status;
+          });
+          setParticipationStatus(initialStatus);
+
+      } catch (err) {
+          console.error("Failed to load volunteer details:", err);
+      } finally {
+          setLoadingVolunteers(false);
+      }
+    }
+
+    loadVolunteerDetails();
+  }, [
+      volunteers, 
+      event, 
+      getUser, 
+      getParticipationForEvent,
+      // Added missing state setters (good practice for linters)
+      setLoadingVolunteers,
+      setVolunteerDetails,
+      setParticipationStatus
+  ]);
   
-  const bulkUpdateParticipation = (newStatus) => {
-    setParticipationStatus((prev) => {
-      const updated = { ...prev };
-      selectedVolunteers.forEach((id) => {
-        console.log('Event Data : ', event._id,id,newStatus);
-        updateParticipation(event._id,id,newStatus);
-      });
-      return updated;
-    });
-  };
+const bulkUpdateParticipation = async (newStatus) => {
+    setParticipationStatus((prev) => {
+      const updated = { ...prev };
+      selectedVolunteers.forEach((id) => {
+        updated[id] = newStatus;
+      });
+      return updated;
+    });
+
+    try {
+      await Promise.all(
+        selectedVolunteers.map(id => 
+          updateParticipation(event.event_id, id, newStatus)
+        )
+      );
+      setSelectedVolunteers([]);
+    } catch (err) {
+      console.error('Bulk update failed:', err);
+    }
+  };
 
   //parse volunteers participation status
 
@@ -322,7 +346,9 @@ const VolunteersTab = ({
   bulkUpdateParticipation,
 }) => (
   <div>
-    <h2 className="text-xl font-semibold text-blue-600 mb-6">Volunteer List</h2>
+    <h2 className="text-xl font-semibold text-blue-600 mb-6">
+      Volunteer List
+    </h2>
 
     {loadingVolunteers ? (
       <p className="text-gray-500">Loading volunteer details...</p>
@@ -335,7 +361,9 @@ const VolunteersTab = ({
               type="checkbox"
               checked={
                 volunteerDetails.length > 0 &&
-                volunteerDetails.every((v) => selectedVolunteers.includes(v.user_id))
+                volunteerDetails.every((v) =>
+                  selectedVolunteers.includes(v.user_id)
+                )
               }
               onChange={(e) => {
                 if (e.target.checked) {
@@ -346,7 +374,9 @@ const VolunteersTab = ({
               }}
               className="w-4 h-4 accent-blue-600"
             />
-            <span className="text-sm text-gray-700 font-medium">Select All</span>
+            <span className="text-sm text-gray-700 font-medium">
+              Select All
+            </span>
           </div>
 
           <div className="flex gap-3">
@@ -385,9 +415,15 @@ const VolunteersTab = ({
               <tr>
                 <th className="py-3 px-4 text-left text-sm font-semibold"></th>
                 <th className="py-3 px-4 text-left text-sm font-semibold">#</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold">Name</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold">Email</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold">Phone</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold">
+                  Name
+                </th>
+                <th className="py-3 px-4 text-left text-sm font-semibold">
+                  Email
+                </th>
+                <th className="py-3 px-4 text-left text-sm font-semibold">
+                  Phone
+                </th>
                 <th className="py-3 px-4 text-center text-sm font-semibold">
                   Participation
                 </th>
@@ -398,9 +434,10 @@ const VolunteersTab = ({
                 const status = participationStatus[v.user_id];
                 const participated = status === "Participated";
                 const isSelected = selectedVolunteers.includes(v.user_id);
+
                 return (
                   <motion.tr
-                    key={v.user_id || index}
+                    key={v.user_id}
                     whileHover={{ scale: 1.01, backgroundColor: "#f9fafb" }}
                     transition={{ duration: 0.2 }}
                     className="border-b border-gray-200 text-sm"
@@ -411,7 +448,10 @@ const VolunteersTab = ({
                         checked={isSelected}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedVolunteers((prev) => [...prev, v.user_id]);
+                            setSelectedVolunteers((prev) => [
+                              ...prev,
+                              v.user_id,
+                            ]);
                           } else {
                             setSelectedVolunteers((prev) =>
                               prev.filter((id) => id !== v.user_id)
@@ -421,7 +461,9 @@ const VolunteersTab = ({
                         className="w-4 h-4 accent-blue-600"
                       />
                     </td>
-                    <td className="py-3 px-4 font-medium text-gray-700">{index + 1}</td>
+                    <td className="py-3 px-4 font-medium text-gray-700">
+                      {index + 1}
+                    </td>
                     <td className="py-3 px-4 font-semibold text-gray-800">
                       {v.user_first_name} {v.user_last_name}
                     </td>
@@ -437,7 +479,7 @@ const VolunteersTab = ({
                             : "bg-red-100 text-red-700 border-red-300"
                         }`}
                       >
-                        {status}
+                      {status}
                       </span>
                     </td>
                   </motion.tr>
@@ -452,6 +494,7 @@ const VolunteersTab = ({
     )}
   </div>
 );
+
 
 const EventAnalytics = ({ event, volunteers, participationStatus }) => {
   // Calculate stats

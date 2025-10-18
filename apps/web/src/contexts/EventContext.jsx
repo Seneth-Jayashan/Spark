@@ -243,7 +243,6 @@ const fetchEvents = useCallback(async () => {
     } catch (err) {
       if (err.response && err.response.status === 404) {
 
-        console.log("No registered events found for user (404 caught). Returning [].");
         return [];
       }
       
@@ -279,20 +278,19 @@ const fetchEvents = useCallback(async () => {
 
   // ----------------------------
   const getParticipationForEvent = useCallback(async (eventId) => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await api.get(`/participation/event/${eventId}`);
-      console.log("backend vols :", res.data);
-      return res.data;
-    } catch (err){
-      console.error(err);
-      setError(err.response?.data?.message || "Failed to fetch participation");
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    setLoading(true);
+    setError("");
+    try {
+      const res = await api.get(`/participation/event/${eventId}`);
+      return res.data.eventParticipations || [];
+    } catch (err){
+      console.error(err);
+      setError(err.response?.data?.message || "Failed to fetch participation");
+      return []; 
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError]);
 
   return (
     <EventContext.Provider
