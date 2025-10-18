@@ -3,6 +3,7 @@ import Logo from "../assets/images/sparklogo-removebg.png";
 import OSImage from "../assets/images/OSignupimage.jpg";
 import { AuthContext } from "../contexts/AuthContext";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 const SignUpOrganization = () => {
   const { signup, error } = useContext(AuthContext);
@@ -19,6 +20,9 @@ const SignUpOrganization = () => {
   });
 
   const [errors, setErrors] = useState({});
+
+  const navigate =  useNavigate();
+
 
   // ✅ Validation
   const validate = () => {
@@ -95,7 +99,11 @@ const SignUpOrganization = () => {
         text: "Organization signed up successfully!",
         icon: "success",
         confirmButtonColor: "#F59E0B" // yellow-500
+      }).then(()=>{
+        navigate("/login");
+        window.scrollTo(0, 0);
       });
+
     } catch (err) {
       console.error("Signup failed:", err);
     }

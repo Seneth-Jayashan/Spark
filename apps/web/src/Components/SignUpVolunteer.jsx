@@ -3,6 +3,7 @@ import Logo from "../assets/images/sparklogo-removebg.png";
 import VSImage from "../assets/images/VSignupimage.jpg";
 import { AuthContext } from "../contexts/AuthContext";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 const SignUpVolunteer = () => {
   const { signup, error } = useContext(AuthContext);
@@ -19,6 +20,8 @@ const SignUpVolunteer = () => {
   });
 
   const [errors, setErrors] = useState({});
+
+  const navigate = useNavigate();
 
   // ✅ Validation function
   const validate = () => {
@@ -88,7 +91,11 @@ const SignUpVolunteer = () => {
         text: "Volunteer signed up successfully!",
         icon: "success",
         confirmButtonColor: "#2563EB" // blue-600
+      }).then(()=>{
+         navigate("/login");
+         window.scrollTo(0, 0);
       });
+
     } catch (err) {
       console.log(err);
       console.error("Signup failed:", err);
