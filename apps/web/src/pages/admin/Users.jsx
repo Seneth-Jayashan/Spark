@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function AdminUsers({ role = "volunteer" }) {
   const [users, setUsers] = useState([]);
@@ -35,10 +37,81 @@ export default function AdminUsers({ role = "volunteer" }) {
     fetchUsers();
   }, [role]);
 
-  const downloadCsv = () => {
-    const base = import.meta.env.VITE_API_URL;
-    const url = `${base}/auth/export${role ? `?role=${encodeURIComponent(role)}` : ""}`;
-    window.open(url, "_blank");
+  const downloadCsv = async () => {
+    try {
+      const includeOrg = role === "organizer";
+      const headers = includeOrg
+        ? ["First Name", "Last Name", "Email", "Phone", "Address", "Organization"]
+        : ["First Name", "Last Name", "Email", "Phone", "Address"];
+
+      const escapeCsv = (val) => {
+        const s = val == null ? "" : String(val);
+        if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+      };
+
+      const rows = users.map((u) => {
+        const base = [
+          u.user_first_name || "",
+          u.user_last_name || "",
+          u.user_email || "",
+          u.user_phone_number || "",
+          u.user_address || "",
+        ];
+        if (includeOrg) base.push(u.organization?.org_name || "");
+        return base.map(escapeCsv).join(",");
+      });
+
+      const csv = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const rolePart = role ? `_${role}` : "";
+      link.setAttribute("download", `users_export${rolePart}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Failed to export CSV");
+    }
+  };
+
+  const downloadPdf = () => {
+    const doc = new jsPDF();
+    const title = `${getRoleDisplayName(role)} Report`;
+    const ts = new Date().toLocaleString();
+    doc.setFontSize(16);
+    doc.text(title, 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${ts}`, 14, 22);
+
+    const headers = role === "organizer" ? [["First Name", "Last Name", "Email", "Phone", "Address", "Organization"]] : [["First Name", "Last Name", "Email", "Phone", "Address"]];
+    const rows = users.map((u) => {
+      const base = [
+        u.user_first_name || "",
+        u.user_last_name || "",
+        u.user_email || "",
+        u.user_phone_number || "",
+        u.user_address || "",
+      ];
+      if (role === "organizer") {
+        base.push(u.organization?.org_name || "");
+      }
+      return base;
+    });
+
+    autoTable(doc, {
+      startY: 30,
+      head: headers,
+      body: rows,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [30, 64, 175] },
+    });
+
+    const rolePart = role ? `_${role}` : "";
+    doc.save(`users_report${rolePart}.pdf`);
   };
 
   const handleDelete = async (user_id) => {
@@ -129,7 +202,7 @@ export default function AdminUsers({ role = "volunteer" }) {
       volunteer: "Volunteer",
       admin: "Administrator",
       donor: "Donor",
-      partner: "Partner"
+      partner: "Partner",
     };
     return roleMap[role] || role.charAt(0).toUpperCase() + role.slice(1);
   };
@@ -143,8 +216,8 @@ export default function AdminUsers({ role = "volunteer" }) {
           <p className="text-gray-600 mt-1">Manage all {role.toLowerCase()} accounts and information</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <button 
-            onClick={openCreate} 
+          <button
+            onClick={openCreate}
             className="px-4 py-2.5 bg-blue-900 hover:bg-blue-800 text-white rounded-lg shadow-md transition-all duration-200 flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,8 +225,8 @@ export default function AdminUsers({ role = "volunteer" }) {
             </svg>
             Add {getRoleDisplayName(role)}
           </button>
-          <button 
-            onClick={downloadCsv} 
+          <button
+            onClick={downloadCsv}
             className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg shadow-md transition-all duration-200 flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,8 +234,17 @@ export default function AdminUsers({ role = "volunteer" }) {
             </svg>
             Export CSV
           </button>
-          <button 
-            onClick={fetchUsers} 
+          <button
+            onClick={downloadPdf}
+            className="px-4 py-2.5 bg-blue-900 hover:bg-blue-800 text-white rounded-lg shadow-md transition-all duration-200 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export PDF
+          </button>
+          <button
+            onClick={fetchUsers}
             className="px-4 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg transition-all duration-200 flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,6 +281,9 @@ export default function AdminUsers({ role = "volunteer" }) {
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">User</th>
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Email</th>
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Phone</th>
+                {role === "organizer" && (
+                  <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Organization</th>
+                )}
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -249,6 +334,25 @@ export default function AdminUsers({ role = "volunteer" }) {
                       <span className="text-gray-400">Not provided</span>
                     )}
                   </td>
+                  {role === "organizer" && (
+                    <td className="px-6 py-4">
+                      {u.organization ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-gray-900 font-medium">{u.organization.org_name}</span>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                            u.organization.org_status 
+                              ? "bg-green-50 text-green-700" 
+                              : "bg-red-50 text-red-700"
+                          }`}>
+                            
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 italic">No organization</span>
+                      )}
+                    </td>
+                  )}
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
                       String(u.user_status).toLowerCase() === "active"
