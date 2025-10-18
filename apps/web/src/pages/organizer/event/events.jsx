@@ -90,9 +90,9 @@ export default function Events() {
           </div>
           <button
             onClick={() => navigate("/dashboard/organizer/event/create")}
-            className="mt-4 sm:mt-0 px-5 py-2.5 bg-blue-900 text-white font-semibold rounded-xl shadow hover:shadow-lg hover:bg-blue-900/95 transition"
+            className="mt-4 sm:mt-0 px-6 py-3 bg-blue-900 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:bg-blue-800 transition-all duration-200 flex items-center gap-2"
           >
-            + Create Event
+            <span className="text-lg">+</span> Create Event
           </button>
         </div>
 
@@ -127,9 +127,9 @@ export default function Events() {
           <p className="text-lg">No events found. Start by creating one!</p>
           <button
             onClick={() => navigate("/dashboard/organizer/event/create")}
-            className="mt-4 px-5 py-2.5 bg-blue-900 text-white font-semibold rounded-xl shadow hover:shadow-lg hover:bg-blue-900/95 transition"
+            className="mt-4 px-6 py-3 bg-blue-900 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:bg-blue-800 transition-all duration-200 flex items-center gap-2 mx-auto"
           >
-            Create Event
+            <span className="text-lg">+</span> Create Event
           </button>
         </div>
       ) : (
@@ -219,63 +219,34 @@ export default function Events() {
                     </div>
                   </div>
 
-                  {/* Action Buttons (Creative + Motion Layout) */}
+                  {/* Action Buttons */}
                   <div
-                    className="flex flex-wrap justify-between items-center border-t border-gray-100 pt-5 mt-5 gap-4"
+                    className="border-t border-gray-100 pt-5 mt-5"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {/* Left side: Edit + Delete */}
-                    <div className="flex gap-3">
+                    {/* Primary Actions Row */}
+                    <div className="flex flex-col sm:flex-row gap-3 mb-3">
                       <motion.button
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() =>
-                          navigate(
-                            `/dashboard/organizer/event/update/${event.event_id}`
-                          )
-                        }
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-900 text-blue-900 rounded-xl text-sm font-medium shadow-sm hover:bg-blue-50 transition"
-                      >
-                        <Edit3 size={16} /> Edit
-                      </motion.button>
-
-                      <motion.button
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEventToDelete(event.event_id);
-                          setDeleteModalOpen(true);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl text-sm font-medium shadow-md hover:shadow-lg hover:from-red-700 hover:to-red-600 transition"
-                      >
-                        <Trash2 size={16} /> Delete
-                      </motion.button>
-                    </div>
-
-                    {/* Right side: View Details + Chat */}
-                    <div className="flex gap-3">
-                      <motion.button
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() =>
                           navigate(
                             `/dashboard/organizer/event/view/${event.event_id}`
                           )
                         }
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-xl text-sm font-medium shadow-md hover:shadow-lg hover:from-blue-800 hover:to-blue-600 transition"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-900 text-white rounded-xl text-sm font-semibold shadow-md hover:bg-blue-800 hover:shadow-lg transition-all duration-200"
                       >
                         <CalendarDays size={16} /> View Details
                       </motion.button>
 
                       <motion.button
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => toggleChat(event.event_id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-md transition ${
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold shadow-md transition-all duration-200 ${
                           selectedEventId === event.event_id
-                            ? "bg-gray-700 text-white hover:bg-gray-800"
-                            : "bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-700 hover:to-green-600"
+                            ? "bg-gray-600 text-white hover:bg-gray-700"
+                            : "bg-green-600 text-white hover:bg-green-700"
                         }`}
                       >
                         {selectedEventId === event.event_id ? (
@@ -287,6 +258,35 @@ export default function Events() {
                             <Users size={16} /> Chat
                           </>
                         )}
+                      </motion.button>
+                    </div>
+
+                    {/* Secondary Actions Row */}
+                    <div className="flex gap-3">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() =>
+                          navigate(
+                            `/dashboard/organizer/event/update/${event.event_id}`
+                          )
+                        }
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-blue-900 text-blue-900 rounded-xl text-sm font-medium hover:bg-blue-50 hover:border-blue-800 transition-all duration-200"
+                      >
+                        <Edit3 size={16} /> Edit Event
+                      </motion.button>
+
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEventToDelete(event.event_id);
+                          setDeleteModalOpen(true);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium shadow-md hover:bg-red-700 hover:shadow-lg transition-all duration-200"
+                      >
+                        <Trash2 size={16} /> Delete
                       </motion.button>
                     </div>
                   </div>
@@ -348,7 +348,7 @@ export default function Events() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setDeleteModalOpen(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+                className="px-6 py-2.5 rounded-xl border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
               >
                 Cancel
               </button>
@@ -367,7 +367,7 @@ export default function Events() {
                     alert("Error deleting event. Try again.");
                   }
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                className="px-6 py-2.5 bg-red-600 text-white font-medium rounded-xl shadow-md hover:bg-red-700 hover:shadow-lg transition-all duration-200"
               >
                 Delete
               </button>
