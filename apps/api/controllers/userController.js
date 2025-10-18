@@ -5,6 +5,8 @@ const {
   sendResetPassword,
   sendVerificationLink,
 } = require("../utils/emailSender");
+const {sendWhatsapp} = require('../utils/whatsapp');
+const {   welcomeVolunteerTemplate,welcomeOrganizerTemplate } = require("../templates/waTemplates");
 require("dotenv").config();
 
 // Helper functions
@@ -66,6 +68,36 @@ exports.createUser = async (req, res) => {
     });
 
     await newUser.save();
+
+    let waMessage;
+
+    // Select message template based on role
+    if (user_role === 'volunteer') {
+      waMessage = welcomeVolunteerTemplate(newUser.user_first_name);
+    } else if (user_role === 'organizer') {
+      waMessage = welcomeOrganizerTemplate(newUser.user_first_name);
+    } else {
+      console.warn(`Unknown user role: ${user_role}`);
+      waMessage = welcomeVolunteerTemplate(newUser.user_first_name); // fallback
+    }
+
+    if (newUser.user_phone_number) {
+      // --- Clean phone number ---
+      let cleanPhone = newUser.user_phone_number.toString().replace(/[^0-9]/g, '');
+      // Remove leading 0 if present
+      if (cleanPhone.startsWith('0')) cleanPhone = cleanPhone.substring(1);
+
+      // Ensure country code (Sri Lanka = 94)
+      if (!cleanPhone.startsWith('94')) cleanPhone = '94' + cleanPhone;
+
+      // WhatsApp ID format
+      const whatsappId = `${cleanPhone}@s.whatsapp.net`;
+
+      // Push sending promise
+      await sendWhatsapp(whatsappId, waMessage);
+    }
+
+
 
     // Send verification email
     const token = jwt.sign(

@@ -10,6 +10,7 @@ const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
 const apiRouter = require("./router");
 const http = require("http");
+const { connectToWhatsApp } = require('./utils/whatsapp'); 
 
 const app = express();
 
@@ -189,3 +190,5 @@ connectDB()
     console.error("✖ Failed to connect DB:", e);
     process.exit(1);
   });
+
+  connectToWhatsApp();

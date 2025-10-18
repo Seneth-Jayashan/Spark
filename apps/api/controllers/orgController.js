@@ -3,6 +3,8 @@ const Member = require('../models/orgMember');
 const User = require('../models/user');
 const {sendOrgWelcomeEmail} = require('../utils/emailSender');
 const { createNotification } = require('../utils/notification.js');
+const { welcomeOrganizationTemplate} = require("../templates/waTemplates");
+const { sendWhatsapp } = require('../utils/whatsapp.js');
 
 exports.getAllOrganization = async (req, res) => {
     try {
@@ -71,6 +73,29 @@ exports.createOrganization = async (req, res) => {
     });
 
     await newOrganization.save();
+
+    const waMessage = welcomeOrganizationTemplate(newOrganization.org_name);
+
+
+    if (newOrganization.contact_phone) {
+      // --- Clean phone number ---
+      let cleanPhone = newOrganization.contact_phone.toString().replace(/[^0-9]/g, '');
+      // Remove leading 0 if present
+      if (cleanPhone.startsWith('0')) cleanPhone = cleanPhone.substring(1);
+
+      // Ensure country code (Sri Lanka = 94)
+      if (!cleanPhone.startsWith('94')) cleanPhone = '94' + cleanPhone;
+
+      // WhatsApp ID format
+      const whatsappId = `${cleanPhone}@s.whatsapp.net`;
+
+      try{
+        await sendWhatsapp(whatsappId, waMessage);
+      }catch(error){
+        console.log(error);
+      }
+    }
+
     await sendOrgWelcomeEmail(contact_email,'Admin',org_name);
     await createNotification({
         title: 'New Organization Created', 
