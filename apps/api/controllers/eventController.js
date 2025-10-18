@@ -209,7 +209,7 @@ exports.addMember = async (req, res) => {
         }
 
         const user =  await User.findOne({user_id});
-        const org = await Organization.findOne({org_id:event.org_id});
+        const org = await Organization.findOne({org_id:event.event_org});
 
         // ✅ Only check membership for this event
         const eventMember = await Member.findOne({ user_id, event_id });
