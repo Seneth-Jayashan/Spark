@@ -7,6 +7,8 @@ const {
 } = require("../utils/emailSender");
 const {sendWhatsapp} = require('../utils/whatsapp');
 const {   welcomeVolunteerTemplate,welcomeOrganizerTemplate } = require("../templates/waTemplates");
+const EventMember = require("../models/eventMember");
+const Organization = require("../models/organization");
 require("dotenv").config();
 
 // Helper functions
@@ -433,6 +435,20 @@ exports.deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    if(user.user_role === 'volunteer'){
+      const member = await EventMember.findOneAndDelete({user_id:user.user_id});
+
+      if (!member) {
+        return res.status(404).json({ message: "Volunteer not found" });
+      }
+    }else{
+      const org = await Organization.findOneAndDelete({org_owner:user.user_id});
+
+      if (!org) {
+        return res.status(404).json({ message: "Organization Admin not found" });
+      }
+    }
+    
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting user" });
