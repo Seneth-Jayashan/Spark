@@ -1,0 +1,28 @@
+{
+  "name": "spark",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:api": "npm run dev --prefix apps/api",
+    "dev:web": "npm run dev --prefix apps/web",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Seneth-Jayashan/Spark.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Seneth-Jayashan/Spark/issues"
+  },
+  "homepage": "https://github.com/Seneth-Jayashan/Spark#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.3.3",
+    "concurrently": "^9.2.1"
+  }
+}
