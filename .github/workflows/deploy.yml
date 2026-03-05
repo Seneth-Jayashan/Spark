@@ -1,15 +1,54 @@
-name: 🚀 Deploy SPARK System
+name: 🚀 Test and Deploy SPARK System
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch: # allows manual trigger from GitHub Actions tab
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # allows manual trigger
 
 jobs:
+  # ==========================================
+  # STAGE 1: QUALITY GATE (Playwright Tests)
+  # ==========================================
+  e2e-tests:
+    name: 🧪 Run Playwright Tests
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🛎️ Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Recommended to pin a specific version like 20 instead of lts/*
+          
+      - name: 📦 Install dependencies
+        run: npm ci
+        
+      - name: 🌐 Install Playwright Browsers
+        run: npx playwright install --with-deps
+        
+      - name: 🧪 Run Playwright tests
+        run: npx playwright test
+        
+      - name: 📊 Upload Test Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  # ==========================================
+  # STAGE 2: DEPLOY BACKEND (Requires Stage 1)
+  # ==========================================
   backend-deploy:
     name: 🔧 Deploy Backend to Railway
     runs-on: ubuntu-latest
+    needs: e2e-tests # 🛑 CRITICAL: This job will only run if e2e-tests passes!
 
     steps:
       - name: 🛎️ Checkout repository
@@ -26,10 +65,13 @@ jobs:
           railway up --service spark-backend --detach
           echo "✅ Backend deployed successfully!"
 
+  # ==========================================
+  # STAGE 3: DEPLOY FRONTEND (Requires Stage 2)
+  # ==========================================
   frontend-deploy:
     name: 🌐 Redeploy Frontend on Vercel
     runs-on: ubuntu-latest
-    needs: backend-deploy
+    needs: backend-deploy # 🛑 CRITICAL: This job only runs if backend-deploy passes!
 
     steps:
       - name: 🔄 Trigger Vercel Redeploy
