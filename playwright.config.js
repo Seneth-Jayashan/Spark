@@ -36,5 +36,7 @@ export default defineConfig({
     url: 'http://localhost:5173', // Playwright waits for the frontend to be ready here
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // Gives your API and Web apps 2 minutes to boot up
+    stdout: 'pipe', // <-- Add this to see your server logs in GitHub
+    stderr: 'pipe', // <-- Add this to see your server errors in GitHub
   },
 });
