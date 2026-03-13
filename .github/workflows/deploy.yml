@@ -68,7 +68,7 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           echo "Deploying backend to Railway..."
-          railway up --service spark-backend --detach
+          railway up --service Spark --detach
           echo "✅ Backend deployed successfully!"
 
   # ==========================================
