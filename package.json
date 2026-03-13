@@ -1,0 +1,31 @@
+{
+  "name": "spark",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "playwright": "^1.58.2",
+    "playwright-core": "^1.58.2",
+    "undici-types": "^7.18.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.5.0"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Seneth-Jayashan/Spark.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Seneth-Jayashan/Spark/issues"
+  },
+  "homepage": "https://github.com/Seneth-Jayashan/Spark#readme"
+}
