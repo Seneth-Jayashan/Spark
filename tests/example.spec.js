@@ -21,7 +21,7 @@ test('Negative Test: Should display an error state for invalid actions', async (
   
   // Assertion: The system should not crash; it should show a 404 or error message.
   // Replace 'Not Found' with whatever text your actual 404 page or error state displays.
-  const errorMessage = page.locator('text="Not Found"'); 
+  const errorMessage = page.locator('text="404 - Page Not Found"'); 
   
   await expect(errorMessage).toBeVisible();
   
