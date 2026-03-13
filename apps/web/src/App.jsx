@@ -24,6 +24,8 @@ import OrgDashboard from "./routes/OrgDashboard";
 
 import MainLayout from "./layouts/MainLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
+import SignUpVolunteer from "./Components/SignUpVolunteer";
+import SignUpOrganization from "./Components/SignUpOrganization";
 
 
 
@@ -45,6 +47,8 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/signup/volunteer" element={<SignUpVolunteer/>} />       
+        <Route path="/signup/organization" element={<SignUpOrganization />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify/:token" element={<VerifyEmail />} />
         <Route path="/logout" element={<LogoutPage />} />
