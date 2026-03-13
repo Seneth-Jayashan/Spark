@@ -1,23 +1,34 @@
 import { test, expect } from '@playwright/test';
 
-// ❌ NEGATIVE TEST (Fails the pipeline to prevent bad deployments)
-test('Negative Test: Quality Gate should block bad deployments', async ({ page }) => {
-  // We test the local build inside the GitHub runner before it goes live
-  await page.goto('http://localhost:5173'); 
+// ✅ POSITIVE TEST: Testing the "Happy Path"
+test('Positive Test: Should load the home page and verify core UI', async ({ page }) => {
+  // Uses baseURL from your playwright.config.js (http://localhost:5173)
+  await page.goto('/'); 
   
-  // Looking for an element that does not exist to simulate a critical UI bug
-  const nonExistentElement = page.locator('.this-class-is-broken');
+  // Verify the page loaded successfully on the local server
+  await expect(page).toHaveURL(/.*localhost.*/);
   
-  // We expect this to fail (timeout reduced for a faster demo)
-  await expect(nonExistentElement).toBeVisible({ timeout: 1000 }); 
+  // Tip for the presentation: Uncomment and adjust the line below to show a real UI check
+  // await expect(page.getByRole('heading', { name: 'SPARK VMS' })).toBeVisible();
 });
 
-// // ✅ POSITIVE TEST (Passes the pipeline to allow deployment)
-// test('Positive Test: Should verify core UI and allow deployment', async ({ page }) => {
-//   await page.goto('http://localhost:5173'); 
+// 🛑 NEGATIVE TEST: Testing the "Unhappy Path" (How the system handles bad input)
+// This test will PASS in the pipeline because it proves your app catches errors properly!
+test('Negative Test: Should display an error state for invalid actions', async ({ page }) => {
   
-//   // Simulating a successful check of your application's actual content
-//   await expect(page).toHaveURL(/.*localhost.*/);
-//   // Optional: Add a real assertion here, like checking for your main heading
-//   // await expect(page.getByRole('heading', { name: 'SPARK VMS' })).toBeVisible();
-// });
+  // Scenario: A user tries to visit a page that does not exist
+  await page.goto('/this-route-does-not-exist'); 
+  
+  // Assertion: The system should not crash; it should show a 404 or error message.
+  // Replace 'Not Found' with whatever text your actual 404 page or error state displays.
+  const errorMessage = page.locator('text="Not Found"'); 
+  
+  await expect(errorMessage).toBeVisible();
+  
+  /* ALTERNATIVE NEGATIVE TEST (If you have a login form):
+    await page.goto('/login');
+    await page.getByRole('button', { name: 'Submit' }).click(); // Click without filling data
+    const validationError = page.getByText('Email is required'); // Verify error pops up
+    await expect(validationError).toBeVisible();
+  */
+});
