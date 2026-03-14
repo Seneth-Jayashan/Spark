@@ -10,7 +10,6 @@ export default defineConfig({
   reporter: 'html',
   
   use: {
-    /* Base URL allows you to use relative paths like page.goto('/') in tests */
     baseURL: 'http://localhost:5173', 
     trace: 'on-first-retry',
   },
@@ -30,13 +29,12 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev', // Triggers concurrently at your root
-    url: 'http://localhost:5173', // Playwright waits for the frontend to be ready here
+    command: 'npm run dev', 
+    url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // Gives your API and Web apps 2 minutes to boot up
-    stdout: 'pipe', // <-- Add this to see your server logs in GitHub
-    stderr: 'pipe', // <-- Add this to see your server errors in GitHub
+    timeout: 120 * 1000, 
+    stdout: 'pipe', 
+    stderr: 'pipe',
   },
 });
