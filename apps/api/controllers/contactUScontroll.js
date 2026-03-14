@@ -1,6 +1,6 @@
 const contact = require("../models/contactModel");
 const nodemailer = require("nodemailer");
-//const Notification = require("../Models/notification");
+const Notification = require("../models/notification");
 const User = require("../models/user");
 
 // Email transporter
